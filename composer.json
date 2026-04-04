@@ -1,0 +1,21 @@
+{
+    "name": "docnet/site",
+    "description": "Sistema de Gerenciamento DocNet",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Core\\": "core/"
+        }
+    },
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "dompdf/dompdf": "^3.1",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

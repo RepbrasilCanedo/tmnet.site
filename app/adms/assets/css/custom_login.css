@@ -1,0 +1,371 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Ubuntu", sans-serif;
+}
+
+:root {
+    --default-color: #0101DF;
+    --site-color: #3a7afe;
+    --main-color: #ebeef6;
+    --active-color: #d4def7;
+    --second-color: #f1f1f1;
+    --fourth-color: #fff;
+    --color-title: #3335ff;
+    --danger-color: #d2322d;
+    --danger-color-second: #f8d7da;
+}
+
+body {
+    background: url("../image/wallpapers/login.jpg") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Container Principal */
+.login-main-flex {
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+    margin: auto;
+}
+
+.wrapper-login {
+    width: 100%;
+    background-color: var(--second-color);
+    border-radius: 8px;
+    box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2), 0px 4px 10px rgba(51, 53, 255, 0.3);
+    overflow: hidden;
+    padding-bottom: 20px;
+}
+
+/* Cabeçalho e Logo */
+.wrapper-login .logo {
+    padding: 30px 20px 10px;
+    text-align: center;
+}
+
+.wrapper-login .logo img {
+    max-width: 180px;
+    height: auto;
+}
+
+.wrapper-login .title {
+    background-color: var(--color-title);
+    color: var(--fourth-color);
+    padding: 10px;
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 20px;
+}
+
+.wrapper-login .title h5 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+/* Alertas */
+.msg-alert {
+    padding: 0 25px;
+    margin-bottom: 15px;
+}
+
+.alert-danger {
+    background-color: var(--danger-color-second);
+    color: var(--danger-color);
+    border-radius: 4px;
+    padding: 12px;
+    font-size: 0.9rem;
+    border: 1px solid #f5c6cb;
+}
+
+/* Formulário e Inputs */
+.form-login {
+    padding: 0 30px;
+}
+
+.login-input-group {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.login-input-group i.icon-main {
+    position: absolute;
+    left: 15px;
+    color: var(--color-title);
+    font-size: 1.1rem;
+    z-index: 5;
+}
+
+.login-input-group input {
+    width: 100%;
+    padding: 12px 40px 12px 45px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.login-input-group input:focus {
+    border-color: var(--color-title);
+    background-color: #fff;
+}
+
+#togglePassword {
+    position: absolute;
+    right: 15px;
+    color: #666;
+    cursor: pointer;
+    z-index: 5;
+    padding: 5px;
+}
+
+/* Botão Acessar */
+.btn-acessar {
+    width: 100%;
+    background-color: var(--default-color);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.3s;
+}
+
+.btn-acessar:hover {
+    background-color: #003366;
+}
+
+/* Link Recuperação */
+.link-novo-login {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.link-novo-login a {
+    color: var(--color-title);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.link-novo-login a:hover {
+    text-decoration: underline;
+}
+
+/* Responsividade Extra */
+@media (max-width: 480px) {
+    .login-main-flex {
+        padding: 10px;
+    }
+    .form-login {
+        padding: 0 20px;
+    }
+}
+
+
+/* Layout Split Screen (mantido o anterior, mas removemos o background linear) */
+.login-split-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Lado da Promoção - Agora com Swiper */
+.login-side-promo {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    padding: 0; /* O Swiper gerencia o padding interno */
+    text-align: center;
+    position: relative; /* Necessário para posicionamento do swiper */
+    overflow: hidden; /* Garante que as imagens não vazem */
+}
+
+.promo-slider {
+    width: 100%;
+    height: 100%;
+}
+
+.swiper-slide {
+    background-size: cover;
+    background-position: center center;
+    display: flex; /* Para centralizar o conteúdo */
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.promo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); /* Escurece a imagem para o texto sobressair */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.promo-logo { width: 180px; margin-bottom: 30px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); } /* Adicionado sombra para logo */
+.promo-overlay h2 { font-size: 2rem; font-weight: 700; margin-bottom: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.promo-overlay p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 30px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+.btn-promo {
+    padding: 12px 30px;
+    border: 2px solid #fff;
+    color: #fff;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: 0.3s;
+    text-decoration: none;
+}
+.btn-promo:hover { background: #fff; color: #192039; }
+
+/* Swiper Pagination (bolinhas de navegação) */
+.swiper-pagination-bullet {
+    background: rgba(255,255,255,0.6);
+    opacity: 1;
+}
+.swiper-pagination-bullet-active {
+    background: #fff;
+}
+
+/* Lado do Formulário (mantido o anterior) */
+.login-side-form {
+    flex: 1;
+    background-color: #f4f7f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.wrapper-login {
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.login-footer { text-align: center; margin-top: 30px; color: #999; }
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .login-split-container { flex-direction: column; }
+    .login-side-promo { 
+        height: 250px; /* Altura fixa para a promo no mobile */
+        padding: 0;
+    }
+    .promo-overlay h2 { font-size: 1.5rem; }
+    .promo-overlay p { font-size: 0.9rem; margin-bottom: 20px; }
+    .promo-logo { width: 120px; margin-bottom: 15px; }
+}
+
+/* 1. Alarga o container branco para os inputs terem espaço para crescer */
+.wrapper-login {
+    width: 100% !important;
+    max-width: 450px !important; /* Ajuste este valor para a largura que desejar */
+}
+
+/* 2. Garante que o input ocupe o espaço mas NÃO empurre o ícone para fora */
+.login-input-group input {
+    width: 100% !important; 
+    flex: 1 !important; 
+    min-width: 0 !important; /* Isso impede que o input "estoure" o limite do box */
+}
+
+/* 3. Trava o ícone para ele nunca ser suprimido ou diminuído pelo texto */
+.login-input-group i {
+    flex-shrink: 0 !important;
+    width: 30px !important; /* Espaço fixo para o ícone */
+    text-align: center !important;
+}
+
+/* AJUSTE DEFINITIVO PARA LARGURA MOBILE */
+@media (max-width: 600px) {
+    /* 1. Remove qualquer limitação de largura do container pai */
+    .login-side-form {
+        padding: 0 !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    /* 2. Faz o box branco ocupar 94% da largura da tela */
+    .wrapper-login {
+        width: 94% !important;
+        max-width: 94% !important;
+        padding: 30px 15px !important; /* Reduz espaço interno para sobrar para o input */
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 3. Estica os grupos de input para a nova largura total */
+    .login-input-group {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: 0 10px !important; /* Espaço mínimo para os ícones */
+    }
+
+    /* 4. Força o campo de texto a usar cada pixel disponível */
+    .login-input-group input {
+        flex: 1 !important;
+        width: 100% !important;
+        min-width: 0 !important; /* Essencial para o texto não empurrar os ícones */
+        font-size: 16px !important;
+    }
+
+    /* 5. Ajusta o botão para acompanhar a largura */
+    .btn-acessar {
+        width: 100% !important;
+    }
+}
+/* AJUSTE PARA REMOVER PROMOÇÃO NO MOBILE E CENTRALIZAR LOGIN */
+@media (max-width: 991px) {
+    /* 1. Esconde a parte da promoção (Carrossel) totalmente no mobile */
+    .login-side-promo {
+        display: none !important;
+    }
+
+    /* 2. Faz o formulário ocupar a tela inteira com fundo limpo */
+    .login-split-container {
+        flex-direction: column;
+        background-color: #f4f7f6; /* Cor de fundo suave para a tela toda */
+    }
+
+    .login-side-form {
+        flex: 1;
+        width: 100% !important;
+        min-height: 100vh; /* Garante que o fundo cubra a tela toda */
+        padding: 20px 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* 3. Ajusta o box branco para não ficar colado no topo */
+    .wrapper-login {
+        margin-top: 0 !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important;
+    }
+}

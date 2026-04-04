@@ -1,0 +1,38 @@
+# Documentação: https://httpd.apache.org/docs/2.4/rewrite/flags.html
+Options -MultiViews
+RewriteEngine On
+
+# --- CORREÇÃO 1: FORÇAR HTTPS (Automático / Inteligente) ---
+# A regra abaixo diz: "Se NÃO for localhost E o HTTPS estiver desligado, redirecione".
+
+# 1. Não aplica se o domínio for "localhost"
+RewriteCond %{HTTP_HOST} !^localhost$ [NC]
+
+# 2. Não aplica se for o IP de loopback (127.0.0.1)
+RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$
+
+# 3. Não aplica se o domínio terminar em ".local" (Seus VirtualHosts do Wamp)
+RewriteCond %{HTTP_HOST} !\.local$ [NC]
+
+# 4. Verifica se o HTTPS está DESLIGADO
+RewriteCond %{HTTPS} !=on
+
+# Se passou por todas as negativas acima (ou seja, é Produção), força o HTTPS:
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# --- REGRAS DO MVC ---
+# Verifica se não é um diretório (-d), arquivo (-f) ou link (-l) físico
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-l
+
+# --- CORREÇÃO 2: AJUSTE NA REGEX ---
+# Mudado de (.+) para (.*) para aceitar também a raiz do site (string vazia)
+# O QSA garante que parâmetros extras (?key=123) sejam passados para o PHP
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# Tratamento de Erros
+ErrorDocument 403 https://docnet.salvador.br
+
+# Segurança: Bloquear listagem de diretórios
+Options -Indexes

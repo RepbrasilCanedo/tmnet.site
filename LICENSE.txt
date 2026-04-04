@@ -1,0 +1,48 @@
+DocNet
+Copyright 2023 RepBrasil Tecnologia
+Todos os direitos reservados.
+Versão 1.0
+
+SOFTWARE: DOCNET  
+
+LICENCIANTE: Rep Brasil Serviços de Tecnologia Ltda, Cnpj: 49.173.405/0001-10, Lauro de Freitas, Bahia.
+
+LICENCIADO: Usuário final (Pessoa física ou jurídica que adquire a licença.
+
+1. OBJETO DA LICENÇA
+1.1. O presente Termo de Licença concede ao LICENCIADO uma licença de uso não exclusiva, intransferível e limitada para utilizar o software Docnet, nas condições e para a finalidade estipuladas neste instrumento.
+ 
+1.2. O Software é licenciado, e não vendido. O uso do Software está sujeito aos termos e condições deste contrato, bem como à política de privacidade da LICENCIANTE.
+
+2. PROPRIEDADE INTELECTUAL
+2.1. O Software, todos os seus módulos, funcionalidades, códigos-fonte, documentação, marcas, logotipos e todos os direitos de propriedade intelectual a eles relacionados são de propriedade exclusiva da LICENCIANTE (Rep Brasil Tecnologia). 
+
+2.2. A presente licença não confere ao LICENCIADO qualquer título ou direito de propriedade sobre o Software, mas apenas o direito de uso nos termos aqui definidos.
+
+3. RESTRIÇÕES DE USO
+3.1. O LICENCIADO concorda em não realizar ou permitir que terceiros realizem, direta ou indiretamente: 
+a) Cópia ou Reprodução do Software, exceto para uma única cópia de backup para fins de arquivamento. 
+b) Modificação, Tradução, Engenharia Reversa (Reverse Engineering), Descompilação ou Desmontagem do Software ou de qualquer parte dele, exceto na estrita medida permitida por lei. 
+c) Aluguel, Arrendamento, Sublicenciamento, Cessão ou Distribuição do Software a terceiros. 
+d) Uso do Software para fins ilícitos ou que violem qualquer lei ou regulamento aplicável.
+
+4. PRAZO E RESCISÃO
+4.1. Esta licença entra em vigor na data de aceitação do presente Termo e permanecerá válida pelo prazo contratado (e.g., vitalício, anual, mensal etc.), ou até ser rescindida. 
+
+4.2. Esta licença será rescindida imediatamente e sem necessidade de aviso prévio se o LICENCIADO descumprir qualquer das cláusulas aqui estabelecidas. 
+
+4.3. Em caso de rescisão, o LICENCIADO deve imediatamente cessar o uso do Software e destruir todas as cópias que possuir.
+
+5. GARANTIAS E LIMITAÇÃO DE RESPONSABILIDADE
+5.1. O Software é fornecido "no estado em que se encontra" (as is). A LICENCIANTE não oferece garantias expressas ou implícitas, incluindo, mas não se limitando a garantias de adequação a um fim específico ou de não violação. 
+
+5.2. A LICENCIANTE não garante que o Software funcionará de forma ininterrupta ou livre de erros. 
+
+5.3. Em nenhuma circunstância a LICENCIANTE será responsável por quaisquer danos diretos, indiretos, incidentais ou consequenciais (incluindo, mas não se limitando a perda de lucros, interrupção de negócios ou perda de dados) decorrentes do uso ou da incapacidade de usar o Software. 
+
+5.4. A responsabilidade total da LICENCIANTE perante o LICENCIADO por quaisquer danos, perdas e causas de ação, seja em contrato, ato ilícito (incluindo negligência) ou de outra forma, não excederá o valor pago pelo LICENCIADO pela licença do Software.
+
+6. DISPOSIÇÕES GERAIS
+6.1. Lei Aplicável e Foro: Este Termo será regido e interpretado de acordo com as leis da República Federativa do Brasil. As partes elegem o foro da Comarca de Lauro de Freitas/Bahia para dirimir quaisquer dúvidas ou conflitos oriundos deste Termo, com renúncia a qualquer outro, por mais privilegiado que seja. 
+
+6.2. Aceitação: Ao instalar, copiar, acessar ou usar o Software, o LICENCIADO declara ter lido, compreendido e concordado com todos os termos e condições deste Acordo de Licença.

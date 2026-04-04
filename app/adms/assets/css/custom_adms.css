@@ -1,0 +1,1617 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Ubuntu", sans-serif;
+    text-decoration: none;
+    
+}
+
+:root {
+    --site-color: #3a7afe;
+    --main-color: #ebeef6;
+    --active-color: #d4def7;
+    --bg-color: #ecedf0;
+    --second-color: #f1f1f1;
+    --third-color: #9fa7bd;
+    --fourth-color: #fff;
+    --fifth-color: #000;
+    --sixth-color: #222;
+    --main-bg-color: #192039;
+    --second-bg-color: #1e2746;
+    --third-bg-color: #3a7afe;
+    --fourth-bg-color: #131b38;
+    --primary-color: #0088cc;
+    --success-color: #47a447;
+    --info-color: #5bc0de;
+    --warning-color: #ed9c28;
+    --danger-color: #d2322d;
+    --primary-color-second: #cfe2ff;
+    --success-color-second: #d1e7dd;
+    --info-color-second: #cff4fc;
+    --warning-color-second: #fff3cd;
+    --danger-color-second: #f8d7da;
+    --dash-aberto: #A901DB;
+    --dash-atend:#0040FF;
+    --dash-paus-sup: #FA5858;
+    --dash-paus-cli: #FA5858;
+    --dash-paus-rep: #FFBF00;
+    --dash-paus-final:#47a447;
+    --azul-padrao:#03B7E9;
+    --dourado: #FFBF01;
+    --azul-royal:#305CDE;
+    --preto-color: #000;
+    --branco-color:#fff;
+
+}
+
+body {
+    background-color: var(--bg-color);
+    overflow-x: hidden; /* Impede barra de rolagem horizontal */
+}
+
+/* Formatação de textos*/
+.todas-maiusculas{
+	text-transform: uppercase;
+}.todas-minusculas{
+	text-transform: lowercase;
+}.primeiras-maiusculas{
+	text-transform: capitalize;
+}
+
+.texto-carrousel{
+	color: white; 
+	text-shadow: 1px 1px 2px black, 0 0 25px blue, 0 0 5px darkblue;
+	text-align: center;
+	
+}
+
+/*Carroussel */
+.carousel-control-next, .carousel-control-prev{
+	width: 5%;
+}
+
+/* Whatsapp */
+
+.whatsapp-box {
+	width: 4rem;
+    height: 4rem;
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    position: fixed;
+    right: 2rem;
+    bottom: 0.65rem;
+    background-color: #2cb742;
+    border-radius: 50%;
+    z-index: 9999;
+}
+
+#whatsapp-icon {
+  display: block;
+}
+
+/* Tamanho Logo Whatsapp */
+#whatsapp-icon img {
+  width: 4.75rem; 
+  height: 4.75rem; 
+}
+
+@media (max-width: 480px) {
+  .whatsapp-box {
+    width: 3rem;
+    height: 3rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+  }
+
+  #whatsapp-icon img {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+/* Tooltip Whatsapp */
+
+.tooltip-link {
+  position: relative;
+}
+
+.tooltip-link:hover::after {
+  content: attr(data-title);
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  margin-right: 8px;
+  background-color: #333;
+  color: white;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+
+
+
+
+a{
+    text-decoration: none;
+}
+.navbar .navbar-content {
+    display: flex;
+    align-items: center;
+}
+
+.navbar .bars,
+.notification {
+    margin-right: 20px;
+    cursor: pointer;
+    
+}
+
+.logo {
+    width: 100px;
+    
+}
+.logo-adm {
+    
+            margin-top: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            
+        }
+
+
+.notification,
+.avatar {
+    cursor: pointer;
+    position: relative;
+}
+
+.notification .number {
+    position: absolute;
+    font-size: 13px;
+    font-weight: bold;
+    background-color: var(--site-color);
+    width: 20px;
+    color: var(--second-color);
+    height: 20px;
+    border-radius: 50%;
+    right: -10px;
+    top: -10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* 4. Dropdown do Perfil (Navbar) */
+.avatar {
+    position: relative; /* Necessário para o dropdown não "flutuar" na tela */
+}
+
+.avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+
+/* Inicio dropdown navbar */
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+    background-color: var(--main-bg-color);
+    width: 280px;
+    border-radius: 7px;
+    display: none;
+}
+
+.dropdown-content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.dropdown-menu li,
+.dropdown-menu a.item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--second-bg-color);
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--fourth-color);
+}
+
+.dropdown-menu li img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.dropdown-menu li .text {
+    font-style: italic;
+    margin-left: 20px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.dropdown-menu li:hover,
+.dropdown-menu .item:hover {
+    background-color: var(--second-bg-color);
+}
+
+
+/* Apresentar a mensagem inteira */
+
+
+/*.dropdown-menu li:hover .text {
+    white-space: pre-wrap;
+}*/
+
+.dropdown-menu .item span {
+    margin-right: 15px;
+}
+
+.dropdown-menu.setting {
+    position: absolute;
+    right: 0;
+    top: 50px; /* Ajuste para descer abaixo da navbar */
+    width: 180px;
+    background-color: var(--branco-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    border: 1px solid #eee;
+}
+
+.dropdown-menu.setting a.item {
+    color: var(--sixth-color) !important;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.dropdown-menu.setting a.item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-menu.active {
+    display: block;
+}
+
+/* Badges e Notificações */
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--danger-color);
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 5px;
+}
+/* Fim dropdown navbar */
+
+
+/* Fim Navbar */
+
+
+/* Inicio conteudo */
+
+.content {
+    display: flex !important; /* Garante o alinhamento lado a lado */
+    align-items: stretch;
+    min-height: calc(100vh - 60px);
+}
+
+
+.icon_star {
+    width: 35px;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    flex-shrink: 0;
+    color: var(--dourado)
+}
+
+.dropdown-btn .icon{
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+
+
+
+/* Fim dropdown sidebar */
+
+/* Container que segura Sidebar + Conteúdo */
+.main-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    padding-top: 60px; /* IMPORTANTE: Espaço para a Navbar Fixa */
+}
+
+/* Faz com que o conteúdo da página ocupe todo o espaço à direita do menu */
+.wrapper {
+    flex-grow: 1;
+    background-color: var(--bg-color);
+    padding: 20px;
+    overflow-x: hidden;
+}
+
+/* Fim sidebar */
+
+.content .wrapper {
+    flex-grow: 1; /* Faz o painel de controle ocupar o espaço restante */
+    width: 100%;
+    padding: 20px;
+    background-color: var(--bg-color);
+}
+
+.content .row {
+    background-color: var(--fourth-color);
+    border-radius: 6px;
+    /*margin: 10px;*/
+}
+
+.wrapper .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    flex-wrap: wrap;
+}
+
+
+/* Inicio dashboard */
+
+.row .box {
+    /*background-color: var(--azul-padrao);*/
+    width: 25%;
+    margin: 5px 1%;
+    height: 100px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--fifth-color);
+    border-radius: 5px;
+    overflow: hidden;
+    flex-direction: column;
+    box-shadow: 5px 3px 5px 1px rgba(0, 64, 255);
+}.row .box_gr {
+    /*background-color: var(--azul-padrao);*/
+    width: 100%;
+    height: 100%;
+    padding: 5pix;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fifth-color);
+    border-radius: 5px;
+    overflow: hidden;
+    flex-direction: column;
+}
+.centralizar{
+    align-items: center;
+    text-align: center;
+}
+
+
+.row .box_commerce {
+    width: 1250px;
+    margin: 5px;
+    height: 250px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--fifth-color);
+    border-radius: 5px;
+    overflow: hidden;
+    flex-direction: column;
+    box-shadow: 5px 3px 5px 1px rgba(0, 0, 0, 0.12);
+    /* background-color: var(--third-color);*/
+}
+
+.box span {
+    margin: 5px 0;
+    font-size: 17px;
+    position: relative;
+}
+
+@media (max-width: 1024px) {
+    .row .box{
+        width: 48%;
+    }
+    
+}
+
+@media(max-width: 768px) {
+    .row .box {
+        width: 98%;
+    }
+}
+
+
+/* Fim dashboard */
+
+
+/* Inicio listar */
+
+.row .top-list {
+    width: 100%;
+    overflow: hidden;
+}
+
+.top-list .title-content {
+    float: left;
+    color: var(--main-bg-color);
+    padding: 10px 16px;
+    font-size: 17px;
+}
+
+.top-list-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.top-list .top-list-right {
+    padding: 10px 5px 5px 0;
+    float: right;
+}
+
+.table-list {
+    margin-top: 15px;
+    width: 100%;
+    
+}
+
+.table-list .list-head .list-head-content {
+    background-color: var(--main-color);
+    color: var(--fourth-bg-color);
+    padding: 10px;
+}
+
+.table-list .list-body .list-body-content {
+    background-color: var(--fourth-color);
+    color: var(--fourth-bg-color);
+    padding: 8px;
+}
+
+.table-list .tr:nth-child(even){
+    background-color: #D6EEEE;
+ }
+
+@media (max-width: 540px) {
+    .table-sm-none {
+        display: none;
+    }
+}
+
+@media (max-width: 720px) {
+    .table-md-none {
+        display: none;
+    }
+}
+
+@media (max-width: 960px) {
+    .table-lg-none {
+        display: none;
+    }
+}
+
+@media (max-width: 1140px) {
+    .table-xl-none {
+        display: none;
+    }
+}
+
+
+/* Inicio botao dropdown do listar */
+
+.dropdown-btn-action {
+    background-color: var(--azul-padrao);
+    color: var(--fourth-color);
+    padding: 5px 8px;
+    border: 1px solid var(--azul-padrao);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.dropdown-btn-action:hover,
+.dropdown-btn-action:focus {
+    background-color: var(--fourth-color);
+    color: var(--azul-padrao);
+}
+
+.dropdown-action {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-action-item {
+    display: none;
+    background-color: var(--fourth-color);
+    min-width: 130px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0 rgba(0, 0, 0, 0.2);
+    position: absolute;
+    right: 0;
+    z-index: 1;
+}
+
+.dropdown-action-item a {
+    color: var(--sixth-color);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-action-item a:hover {
+    background-color: var(--main-color);
+}
+
+.show-dropdown-action {
+    display: block;
+}
+
+.testa {
+    text-align: right;
+    color: red;
+    text-decoration: none;
+}
+/* Fim botao dropdown do listar */
+
+
+/* Inicio paginacao */
+
+.content-pagination {
+    margin: 15px 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination {
+    display: inline-block;
+    font-size: 15px;
+}
+
+.pagination a {
+    color: var(--fourth-bg-color);
+    float: left;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color .3s;
+}
+
+.pagination a.active {
+    background-color: var(--second-bg-color);
+    color: var(--fourth-color);
+}
+
+.pagination a:hover:not(.active) {
+    background-color: var(--main-color);
+}
+
+
+/* Fim paginacao */
+
+
+/* Fim listar */
+
+
+/* Inicio personalizar botao */
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--fourth-color);
+    padding: 5px 8px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--fourth-color);
+    color: var(--primary-color);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: var(--fourth-color);
+    padding: 5px 8px;
+    border: 1px solid var(--success-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-dark:hover{
+    background-color: var(--fourth-color);
+    color: #000;
+}
+
+.btn-success:hover {
+    background-color: var(--fourth-color);
+    color: var(--success-color);
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    color: var(--fourth-color);
+    padding: 5px 8px;
+    border: 1px solid var(--warning-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-warning:hover {
+    background-color: var(--fourth-color);
+    color: var(--warning-color);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: var(--fourth-color);
+    padding: 5px 8px;
+    border: 1px solid var(--danger-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-danger:hover {
+    background-color: var(--fourth-color);
+    color: var(--danger-color);
+}
+
+.btn-info {
+    background-color: var(--info-color);
+    color: var(--fourth-color);
+    padding: 5px 8px;
+    border: 1px solid var(--info-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-info:hover {
+    background-color: var(--fourth-color);
+    color: var(--info-color);
+}
+
+
+/* Inicio botao outline */
+
+.btn-outline-primary {
+    background-color: var(--fourth-color);
+    color: var(--primary-color);
+    padding: 5px 8px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: var(--fourth-color);
+}
+
+.btn-outline-success {
+    background-color: var(--fourth-color);
+    color: var(--success-color);
+    padding: 5px 8px;
+    border: 1px solid var(--success-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-outline-success:hover {
+    background-color: var(--success-color);
+    color: var(--fourth-color);
+}
+
+.btn-outline-warning {
+    background-color: var(--fourth-color);
+    color: var(--warning-color);
+    padding: 5px 8px;
+    border: 1px solid var(--warning-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-outline-warning:hover {
+    background-color: var(--warning-color);
+    color: var(--fourth-color);
+}
+
+.btn-outline-danger {
+    background-color: var(--fourth-color);
+    color: var(--danger-color);
+    padding: 5px 8px;
+    border: 1px solid var(--danger-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--danger-color);
+    color: var(--fourth-color);
+}
+
+.btn-outline-info {
+    background-color: var(--fourth-color);
+    color: var(--info-color);
+    padding: 5px 8px;
+    border: 1px solid var(--info-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .3s ease;
+}
+
+.btn-outline-info:hover {
+    background-color: var(--info-color);
+    color: var(--fourth-color);
+}
+
+
+/* Fim botao outline */
+
+
+/* Fim pernalizar botao */
+
+
+/* Inicio formulario */
+
+.wrapper .content-adm {
+    width: 100%;
+    padding: 5px;
+}
+
+.wrapper .content-adm-alert {
+    width: 100%;
+    margin: 0 10px;
+    border-top: 1px var(--main-color) solid;
+}
+
+.form-adm {
+    width: 100%;
+    position: relative;
+    margin: 10px auto 0 auto;
+}
+
+.row-input {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px 30px;
+    margin-bottom: 20px;
+}
+
+
+.title-input {
+    color: var(--fourth-bg-color);
+    font-size: 14px;
+}
+
+input.input-adm,
+textarea.input-adm,
+select.input-adm {
+    width: 100%;
+    font-weight: 400;
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1.2px solid var(--active-color);
+    margin-top: 5px;
+}
+
+textarea.input-adm {
+    resize: none;
+}
+
+input.input-adm:focus,
+textarea.input-adm:focus,
+select.input-adm:focus {
+    outline: none;
+    border-color: var(--site-color);
+}
+
+.select2-container--default .select2-selection--single{
+    width: 100%;
+    font-weight: 400;
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1.2px solid var(--active-color);
+    margin-top: 5px;
+    height: 100%;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered{
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/* Fim formulario */
+
+
+/* Inicio visualizar */
+
+.content-adm .view-det-adm {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.view-det-adm .view-adm-title {
+    width: 250px;
+    color: var(--fourth-bg-color);
+    font-size: 15px;
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+.view-det-adm .view-adm-info {
+    width: 100%;
+    color: var(--second-bg-color);
+    font-size: 15px;
+    padding: 3px 10px;
+}
+
+
+/* Fim visualizar */
+
+
+/* Inicio alerta */
+
+.alert-primary {
+    background-color: var(--primary-color-second);
+    color: var(--primary-color);
+    margin: 10px 0;
+    border-radius: 4px;
+    padding: 12px 7px;
+}
+
+.alert-success {
+    background-color: var(--success-color-second);
+    color: var(--success-color);
+    margin: 10px 0;
+    border-radius: 4px;
+    padding: 12px 7px;
+}
+
+.alert-warning {
+    background-color: var(--warning-color-second);
+    color: var(--warning-color);
+    margin: 10px 0;
+    border-radius: 4px;
+    padding: 12px 7px;
+}
+
+.alert-danger {
+    background-color: var(--danger-color-second);
+    color: var(--danger-color);
+    margin: 10px 0;
+    border-radius: 4px;
+    padding: 12px 7px;
+}
+
+.alert-info {
+    background-color: var(--info-color-second);
+    color: var(--info-color);
+    margin: 10px 0;
+    border-radius: 4px;
+    padding: 12px 7px;
+}
+
+/* Fim alerta */
+
+/* Inicio pesquisar */
+
+.row-input-search{
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px 30px;
+    margin-bottom: 20px;
+}
+
+.title-input-search{
+    color: var(--fourth-bg-color);
+    font-size: 14px;
+}
+
+input.input-search,
+select.input-search{
+    width: 100%;
+    font-weight: 400;
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1.2px solid var(--active-color);
+    margin-top: 5px;
+}
+
+input.input-search:focus,
+select.input-search:focus{
+    outline: none;
+    border-color: var(--site-color);
+}
+
+@media (min-width: 1250px){
+    .margin-top-search{
+        margin-top: 25px;
+    }
+}
+
+@media (min-width: 927px){
+    .margin-top-search-one{
+        margin-top: 25px;
+    }
+}
+
+
+/* Botões de atendimento*/
+@media (max-width: 540px) {
+  .btn-sm{
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .aButton{
+    width: 100%;
+    text-align: center;
+  }
+
+  .col-md-12 {
+    padding: 0;
+  }
+}
+
+/* Fim pesquisar */
+
+/* Inicio texto */
+
+.text-primary{
+    color: var(--primary-color);
+}
+
+.text-success{
+    color: var(--success-color);
+}
+
+.text-warning{
+    color: var(--warning-color);
+}
+
+.text-danger{
+    color: var(--danger-color);
+}
+
+.text-info{
+    color: var(--info-color);
+}
+
+/* Fim texto */
+
+/* Inicio margem */
+
+.mb-1{
+    margin-bottom: 2px;
+}
+
+.mb-2{
+    margin-bottom: 4px;
+}
+
+.mb-3{
+    margin-bottom: 6px;
+}
+
+.mb-4{
+    margin-bottom: 8px;
+}
+
+.mb-5{
+    margin-bottom: 10px;
+}
+
+/* Fim margem */
+
+/* Inicio tamanho fonte */
+
+.fs-3{
+    font-size: 10px;
+}
+
+.fs-4{
+    font-size: 14px;
+}
+
+
+textarea{
+    resize: none;
+}
+
+
+/* Fim tamanho fonte */
+
+
+/* Fim conteudo */
+
+/* Efeito visual para quando o campo está carregando ou é preenchido automaticamente */
+.input-adm:focus {
+    border-color: #007bff;
+    transition: 0.3s;
+}
+
+#cep-status {
+    font-weight: bold;
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* Estilo para o container do CEP */
+.cep-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#cep-status {
+    position: absolute;
+    right: 10px;
+    font-size: 0.8rem;
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Feedback visual para campos preenchidos automaticamente */
+.field-auto-filled {
+    animation: highlight 1.5s ease-out;
+}
+
+@keyframes highlight {
+    0% { background-color: #e8f0fe; }
+    100% { background-color: transparent; }
+}
+
+
+/* --- ESTILOS EXCLUSIVOS PARA MENSAGENS DE SOLICITAÇÃO --- */
+
+/* Badge de Status Sólido */
+.badge-status {
+    display: inline-block;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 20px; /* Estilo pílula */
+    text-align: center;
+    min-width: 90px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-enviado { 
+    background-color: var(--warning-color) !important; 
+    color: #000 !important; 
+    box-shadow: 0 2px 4px rgba(237, 156, 40, 0.3);
+}
+
+.status-lido { 
+    background-color: var(--info-color) !important; 
+    color: #fff !important; 
+    box-shadow: 0 2px 4px rgba(91, 192, 222, 0.3);
+}
+
+.status-respondido { 
+    background-color: var(--success-color) !important; 
+    color: #fff !important; 
+    box-shadow: 0 2px 4px rgba(71, 164, 71, 0.3);
+}
+
+.status-default { 
+    background-color: var(--third-color) !important; 
+    color: #fff !important;
+}
+
+/* Ajuste na tabela para mensagens */
+.table-list .msg-preview {
+    color: var(--sixth-color);
+    font-size: 0.85rem;
+    cursor: help;
+}
+
+.table-list .subject-text {
+    color: var(--azul-royal);
+    font-weight: 500;
+}
+/* Realce para facilitar a leitura de listas longas */
+.table-list .list-body tr:hover td {
+    background-color: #f8f9fa !important;
+    transition: 0.2s;
+}
+
+/* Estilo do link do WhatsApp no suporte */
+.text-success.fw-bold:hover {
+    color: #128c7e !important;
+    text-decoration: underline;
+}
+
+/* --- ESTILOS DO DASHBOARD --- */
+.dash-wrapper { padding: 15px; background: #f4f6f9; }
+
+.dash-section-title { 
+    font-size: 14px; font-weight: 700; color: #555; 
+    text-transform: uppercase; margin: 25px 0 15px 5px; 
+    display: block; width: 100%; border-bottom: 1px solid #ddd; padding-bottom: 5px;
+}
+
+.row-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card-dash {
+    background: #fff;
+    flex: 1;
+    min-width: 220px;
+    max-width: 280px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    position: relative;
+    transition: 0.3s;
+}
+
+.card-dash:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.card-dash h6 { margin: 0; font-size: 11px; color: #888; letter-spacing: 0.5px; }
+.card-dash h5 { margin: 10px 0; font-size: 24px; font-weight: 700; color: #333; }
+.card-dash .label-link { font-size: 12px; font-weight: 600; text-decoration: none; }
+.card-icon { position: absolute; top: 15px; right: 15px; font-size: 1.2rem; color: #eee; }
+
+.alert-critical {
+    background: #fff5f5; border: 1px solid #feb2b2; padding: 15px;
+    border-radius: 8px; display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .row .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        justify-content: center;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+}
+
+.progress { background-color: #e9ecef; border-radius: 5px; overflow: hidden; }
+.progress-bar { display: flex; flex-direction: column; justify-content: center; color: #fff; text-align: center; transition: width .6s ease; }
+.border-end { border-right: 1px solid #dee2e6 !important; }
+
+@media (max-width: 768px) {
+    .border-end { border-right: none !important; border-bottom: 1px solid #dee2e6 !important; padding-bottom: 20px; }
+}
+/* ============================================================
+   SISTEMA DE LAYOUT DOCNET (CORRIGIDO)
+   ============================================================ */
+
+/* 1. Container Principal (Flexbox) */
+.main-container {
+    display: flex !important;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden; /* Evita rolagem horizontal indesejada */
+    position: relative;
+}
+
+/* 2. Sidebar (Menu Lateral) */
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background-color: #fff;
+    border-right: 1px solid #e0e0e0;
+    position: fixed;
+    top: 60px; /* Começa logo abaixo da Navbar */
+    bottom: 0;
+    left: 0;
+    z-index: 999;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease; /* Animação suave */
+}
+
+/* --- ESTADO ESCONDIDO (DESKTOP) --- */
+/* Quando a classe .active é adicionada pelo JS, o menu sai da tela */
+.sidebar.active {
+    margin-left: -260px;
+}
+
+/* 3. Wrapper (Conteúdo Principal) */
+.wrapper {
+    width: 100%;
+    margin-left: 260px; /* Espaço reservado para a sidebar */
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+/* --- ESTADO EXPANDIDO (DESKTOP) --- */
+/* Quando a sidebar some, o conteúdo estica */
+.wrapper.sidebar-active {
+    margin-left: 0;
+}
+
+/* 4. Navbar Fixa */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: var(--info-color); /* Cor de fundo azul */
+    display: flex;
+    justify-content: space-between; /* Separa Esquerda e Direita */
+    align-items: center; /* Centraliza verticalmente */
+    padding: 0 15px;
+    z-index: 1001; /* Fica acima de tudo */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* ============================================================
+   RESPONSIVIDADE (MOBILE - Telas menores que 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+    
+    /* No celular, a sidebar começa escondida */
+    .sidebar {
+        margin-left: -260px;
+    }
+
+    /* Quando clica, ela aparece (margin-left volta a zero) */
+    .sidebar.active {
+        margin-left: 0;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+    }
+
+    /* O conteúdo ocupa 100% sempre no mobile */
+    .wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    /* Overlay opcional para escurecer o fundo quando menu abre */
+    .sidebar.active::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: -1;
+    }
+}
+
+/* ============================================================
+   ESTILOS DE MENUS E DROPDOWNS (AJUSTADO)
+   ============================================================ */
+
+/* Links da Sidebar */
+.sidebar-nav {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: var(--sixth-color);
+    text-decoration: none;
+    transition: 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-nav i {
+    width: 30px;
+    text-align: center;
+    font-size: 1.1rem;
+    margin-right: 10px;
+}
+
+.sidebar-nav:hover, .sidebar-nav.active {
+    background-color: #f4f6f9;
+    color: var(--azul-royal);
+    border-left-color: var(--azul-royal);
+}
+
+/* Submenus (Accordion) */
+.nav-dropdown-content {
+    display: none; /* JS altera para block */
+    background-color: #fafafa;
+    overflow: hidden;
+}
+
+.nav-dropdown-content a {
+    padding-left: 25px; /* Indentação */
+    font-size: 0.95rem;
+}
+
+.nav-dropdown-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.arrow-icon {
+    transition: transform 0.3s;
+    margin-left: auto;
+}
+
+/* Gira a seta quando ativo */
+.nav-dropdown-btn.active .arrow-icon {
+    transform: rotate(90deg);
+}
+
+/* Lado Esquerdo (Hamburguer + Logo) */
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 100%;
+}
+.bars {
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+.navbar-left .logo {
+    max-height: 40px; /* Evita que a logo estoure a altura */
+    width: auto;
+}
+/* Lado Direito (Botoes + Perfil) */
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espaço entre os elementos */
+    height: 100%;
+}
+
+/* Botões de Ação (Ticket/Agendar) */
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.btn-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px;
+    padding: 0 15px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff !important; /* Força texto branco */
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-nav i { margin-right: 5px; }
+
+/* Correção específica para as cores dos botões */
+.btn-ticket { background-color: transparent; border: 1px solid rgba(255,255,255,0.3); }
+.btn-ticket:hover { background-color: rgba(255,255,255,0.1); }
+
+.btn-schedule { background-color: rgba(255,255,255,0.2); border: none; }
+.btn-schedule:hover { background-color: rgba(255,255,255,0.3); }
+
+/* Perfil do Usuário */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    height: 100%;
+    border-left: 1px solid rgba(255,255,255,0.1); /* Divisória sutil */
+    padding-left: 15px;
+    position: relative;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.user-name { font-weight: bold; font-size: 14px; }
+.user-role { font-size: 11px; opacity: 0.8; }
+
+/* Avatar */
+.avatar {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.avatar-img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+/* Dropdown do Menu (Minha Conta) */
+.dropdown-menu-modern {
+    display: none;
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 180px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    padding: 10px 0;
+    z-index: 1002;
+    border: 1px solid #ddd;
+}
+
+.dropdown-menu-modern.active { display: block !important; }
+
+.dropdown-menu-modern .item {
+    display: block;
+    padding: 10px 20px;
+    color: #333;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.dropdown-menu-modern .item:hover {
+    background-color: #f5f5f5;
+    color: var(--azul-royal);
+}
+
+/* ============================================================
+   3. RESPONSIVIDADE (Celular)
+   ============================================================ */
+@media (max-width: 768px) {
+    .sidebar { margin-left: -260px; } /* Escondido por padrão no mobile */
+    .sidebar.active { margin-left: 0; } /* Mostra quando ativo */
+    
+    .wrapper { margin-left: 0; width: 100%; }
+    
+    .user-info, .action-buttons span { display: none; } /* Esconde textos no mobile */
+}
+
+
+/* Estilização da Timeline */
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+/* A linha vertical cinza */
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+/* O círculo (bolinha) na linha */
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: -17px;
+    top: 20px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #305CDE;
+    z-index: 1;
+}
+
+/* Destaque para interações do suporte técnico */
+.border-primary-left {
+    border-left: 5px solid #305CDE !important;
+}
+
+/* Ajustes de espaçamento para desktop */
+@media (min-width: 768px) {
+    .ms-md-5 { margin-left: 3rem !important; }
+    .me-md-5 { margin-right: 3rem !important; }
+}
+/* Ajustes para a Timeline no Mobile */
+@media (max-width: 767px) {
+    .timeline {
+        padding-left: 15px; /* Reduz recuo lateral da linha */
+    }
+
+    .timeline::before {
+        left: 5px; /* Ajusta a posição da linha vertical */
+    }
+
+    .timeline-item {
+        margin-left: 15px !important; /* Remove o deslocamento lateral forçado */
+        margin-right: 0 !important;   /* Ocupa a largura total disponível */
+        padding: 12px !important;     /* Compacta o conteúdo interno */
+    }
+
+    .timeline-item::after {
+        left: -22px; /* Reposiciona a bolinha na linha vertical */
+        top: 15px;
+    }
+
+    /* Ajusta cabeçalho do item (Nome e Badge) */
+    .timeline-item .d-flex {
+        flex-direction: column; /* Empilha nome e status para ganhar espaço lateral */
+        align-items: flex-start !important;
+    }
+
+    .timeline-item .badge {
+        margin-top: 5px;
+        font-size: 0.75rem; /* Status menor no mobile */
+    }
+
+    .timeline-item small {
+        display: block;
+        margin-bottom: 2px;
+    }
+}
+

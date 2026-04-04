@@ -1,0 +1,121 @@
+<?php
+if (!defined('D0O8C0A3N1E9D6O1')) {
+    header("Location: /");
+    die("Erro: Página não encontrada<br>");
+}
+?>
+<div class="dash-wrapper">
+    <div class="row">
+        <div class="top-list">
+            <span class="title-content">Cadastrar Competição Oficial - TMNet</span>
+            <div class="top-list-right">
+                <a href="<?= URLADM ?>list-competicoes/index" class="btn-info">Listar Torneios</a>
+            </div>
+        </div>
+
+        <div class="content-adm-alert">
+            <?php
+            if (isset($_SESSION['msg'])) {
+                echo $_SESSION['msg'];
+                unset($_SESSION['msg']);
+            }
+            ?>
+        </div>
+
+        <div class="content-adm">
+            <form method="POST" action="" class="form-adm">
+                
+                <div class="row-input">
+                    <div class="column">
+                        <label class="title-input">Nome do Torneio (Oficial)</label>
+                        <input type="text" name="nome_torneio" class="input-adm" placeholder="Ex: TMB Estadual - 1ª Etapa" value="<?= $this->data['form']['nome_torneio'] ?? '' ?>" required>
+                    </div>
+                    <div class="column">
+                        <label class="title-input">Data do Evento</label>
+                        <input type="date" name="data_evento" class="input-adm" value="<?= $this->data['form']['data_evento'] ?? '' ?>" required>
+                    </div>
+                    <div class="column">
+                        <label class="title-input">Horário de Início</label>
+                        <input type="time" name="horario_inicio" class="input-adm" value="<?= $this->data['form']['horario_inicio'] ?? '08:00' ?>" required>
+                    </div>
+                </div>
+
+                <div class="row-input">
+                    <div class="column">
+                        <label class="title-input">Nível / Chancela do Torneio</label>
+                        <select name="categoria_cbtm" class="input-adm">
+                            <option value="TMB Estadual">TMB Estadual</option>
+                            <option value="TMB Challenge Plus">TMB Challenge Plus</option>
+                            <option value="TMB Platinum">TMB Platinum</option>
+                            <option value="Liga Regional">Liga Regional / Municipal</option>
+                            <option value="Torneio Interno">Torneio Interno (Clube)</option>
+                            <option value="Festival">Festival / Iniciante</option>
+                        </select>
+                    </div>
+                    <div class="column">
+                        <label class="title-input">Fator Multiplicador (Peso Ranking)</label>
+                        <select name="fator_multiplicador" class="input-adm">
+                            <option value="1.00">Peso 1.00 (Local / Treino)</option>
+                            <option value="1.50">Peso 1.50 (Estadual / Challenge)</option>
+                            <option value="2.00">Peso 2.00 (Nacional / Platinum)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="background: #eef2fa; padding: 15px; border-radius: 8px; border: 1px solid #0044cc; margin-bottom: 20px;">
+                    <h5 style="margin-top: 0; color: #0044cc; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Categorias e Divisões em Disputa</h5>
+                    <p style="font-size: 13px; color: #555; margin-bottom: 10px;">Selecione quais categorias irão acontecer neste torneio. Apenas atletas que cumprirem os requisitos de Idade e Rating poderão se inscrever nas opções marcadas abaixo.</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                        <?php if (!empty($this->data['categorias_clube'])): ?>
+                            <?php foreach ($this->data['categorias_clube'] as $cat): ?>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                    <input type="checkbox" name="categorias_ids[]" value="<?= $cat['id'] ?>" style="width: 16px; height: 16px; cursor: pointer;">
+                                    <span style="font-size: 14px; font-weight: bold; color: #333;"><?= $cat['nome'] ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div style="grid-column: 1 / -1; background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; border: 1px solid #ffeeba;">
+                                ⚠️ Nenhuma categoria cadastrada no seu clube. <a href="<?= URLADM ?>add-categoria/index" style="color: #0044cc; font-weight: bold;">Clique aqui para criar</a> antes de agendar o torneio.
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="row-input">
+                    <div class="column">
+                        <label class="title-input">Local / Ginásio</label>
+                        <input type="text" name="local_evento" class="input-adm" placeholder="Ex: Sede do Clube / Ginásio Poliesportivo" value="<?= $this->data['form']['local_evento'] ?? '' ?>">
+                    </div>
+                    <div class="column">
+                        <label class="title-input">Sistema de Disputa</label>
+                        <select name="sistema_disputa" class="input-adm">
+                            <option value="1">Grupos de 3 (Passam 2) + Mata-mata</option>
+                            <option value="2">Chave Única (Todos contra todos)</option>
+                        </select>
+                    </div>
+                    <div class="column">
+                        <label class="title-input">Gênero da Competição</label>
+                        <select name="tipo_genero" class="input-adm">
+                            <option value="1">Misto (Homens e Mulheres juntos)</option>
+                            <option value="2">Separado por Gênero (Masc / Fem independentes)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row-input">
+                    <div class="column">
+                        <label class="title-input">Observações do Torneio</label>
+                        <textarea name="observacoes" class="input-adm" rows="3" placeholder="Informações sobre inscrições, taxas ou regulamento específico..."><?= $this->data['form']['observacoes'] ?? '' ?></textarea>
+                    </div>
+                </div>
+
+                <div class="button-area" style="margin-top: 20px;">
+                    <button type="submit" name="AdmsAddComp" class="btn-success" value="Cadastrar" style="background-color: #0044cc; font-size: 16px; padding: 12px 20px;">
+                        🏆 Criar Competição Oficial
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
