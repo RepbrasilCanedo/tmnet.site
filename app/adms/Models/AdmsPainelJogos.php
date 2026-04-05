@@ -17,17 +17,22 @@ class AdmsPainelJogos
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
-        // Busca o nome do torneio e detalhes
         $read->fullRead("SELECT nome_torneio FROM adms_competicoes WHERE id = :id LIMIT 1", "id={$compId}");
         $torneio = $read->getResult()[0] ?? null;
+
+        // 1. Verifica se o torneio já acabou por completo (Zero jogos pendentes)
+        $read->fullRead("SELECT id FROM adms_partidas WHERE adms_competicao_id = :comp_id AND (vencedor_id IS NULL OR vencedor_id = 0) LIMIT 1", "comp_id={$compId}");
+        $isFinished = empty($read->getResult()); // True se não houver jogos pendentes
         
-        // Busca os jogos pendentes que já têm mesa atribuída
+        // 2. Busca os jogos em andamento nas mesas
         $read->fullRead(
             "SELECT p.id, p.mesa, p.status_partida, p.fase, p.horario_previsto, 
-                    ua.name as atleta_a, ub.name as atleta_b, cat.nome as cat_nome
+                    COALESCE(ua.name, 'A Definir') as atleta_a, 
+                    COALESCE(ub.name, 'A Definir') as atleta_b, 
+                    cat.nome as cat_nome
              FROM adms_partidas p
-             INNER JOIN adms_users ua ON ua.id = p.atleta_a_id
-             INNER JOIN adms_users ub ON ub.id = p.atleta_b_id
+             LEFT JOIN adms_users ua ON ua.id = p.atleta_a_id
+             LEFT JOIN adms_users ub ON ub.id = p.atleta_b_id
              LEFT JOIN adms_categorias cat ON cat.id = p.adms_categoria_id
              WHERE p.adms_competicao_id = :comp_id 
                AND (p.vencedor_id IS NULL OR p.vencedor_id = 0) 
@@ -36,7 +41,6 @@ class AdmsPainelJogos
             "comp_id={$compId}"
         );
 
-        // Pega apenas o PRÓXIMO jogo de cada mesa para não poluir a tela
         $jogosGerais = $read->getResult() ?: [];
         $jogosNoPainel = [];
         $mesasOcupadas = [];
@@ -48,9 +52,65 @@ class AdmsPainelJogos
             }
         }
 
+        // =========================================================
+        // 3. Busca Pódios: 1º e 2º (Finais) + 3ºs Lugares (Semifinais)
+        // =========================================================
+        $read->fullRead(
+            "SELECT p.id, p.fase, p.vencedor_id, p.atleta_a_id, p.atleta_b_id, p.genero_partida,
+                    ua.name as atleta_a, ub.name as atleta_b,
+                    uv.name as vencedor_nome, cat.nome as cat_nome, c.tipo_genero
+             FROM adms_partidas p
+             LEFT JOIN adms_users ua ON ua.id = p.atleta_a_id
+             LEFT JOIN adms_users ub ON ub.id = p.atleta_b_id
+             LEFT JOIN adms_users uv ON uv.id = p.vencedor_id
+             LEFT JOIN adms_categorias cat ON cat.id = p.adms_categoria_id
+             INNER JOIN adms_competicoes c ON c.id = p.adms_competicao_id
+             WHERE p.adms_competicao_id = :comp_id 
+               AND p.fase IN ('Final', 'Semifinal') 
+               AND p.vencedor_id IS NOT NULL AND p.vencedor_id > 0",
+            "comp_id={$compId}"
+        );
+        $jogosDecisivos = $read->getResult() ?: [];
+        $podiosPorCategoria = [];
+        
+        foreach ($jogosDecisivos as $jogo) {
+            $catNomeBase = !empty($jogo['cat_nome']) ? $jogo['cat_nome'] : 'Livre';
+            
+            // Define o Gênero para separar o pódio corretamente
+            $tipoGenero = $jogo['tipo_genero'] ?? 1;
+            $genNome = 'Misto';
+            if ($tipoGenero == 2) {
+                $genNome = ($jogo['genero_partida'] == 'F') ? 'Feminino' : 'Masculino';
+            }
+            
+            $catNomeCompleto = $catNomeBase . " - " . $genNome;
+
+            if (!isset($podiosPorCategoria[$catNomeCompleto])) {
+                $podiosPorCategoria[$catNomeCompleto] = [
+                    'categoria' => $catNomeCompleto,
+                    'campeao' => 'A Definir',
+                    'vice' => 'A Definir',
+                    'terceiros' => []
+                ];
+            }
+
+            if ($jogo['fase'] == 'Final') {
+                $campeao = $jogo['vencedor_nome'];
+                $vice = ($jogo['vencedor_id'] == $jogo['atleta_a_id']) ? $jogo['atleta_b'] : $jogo['atleta_a'];
+                $podiosPorCategoria[$catNomeCompleto]['campeao'] = $campeao;
+                $podiosPorCategoria[$catNomeCompleto]['vice'] = $vice;
+            } elseif ($jogo['fase'] == 'Semifinal') {
+                // O perdedor da semifinal é o 3º lugar
+                $terceiro = ($jogo['vencedor_id'] == $jogo['atleta_a_id']) ? $jogo['atleta_b'] : $jogo['atleta_a'];
+                $podiosPorCategoria[$catNomeCompleto]['terceiros'][] = $terceiro;
+            }
+        }
+
         $this->result = [
             'nome_torneio' => $torneio['nome_torneio'] ?? 'Torneio TMNet',
-            'jogos' => $jogosNoPainel
+            'is_finished' => $isFinished,
+            'jogos' => $jogosNoPainel,
+            'podios' => array_values($podiosPorCategoria)
         ];
     }
 }
