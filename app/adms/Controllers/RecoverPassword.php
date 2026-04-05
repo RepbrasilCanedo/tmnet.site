@@ -18,17 +18,17 @@ class RecoverPassword
             $model = new \App\adms\Models\AdmsRecoverPassword();
             $model->recover($this->dataForm);
 
+            // A Model agora é quem define o $_SESSION['msg'] com o erro real!
             if ($model->getResult()) {
-                $_SESSION['msg'] = "<p class='alert-success'>Enviamos um link de recuperação para o seu e-mail!</p>";
-                // Redireciona para login ou fica na mesma tela
-            } else {
-                $_SESSION['msg'] = "<p class='alert-danger'>Erro: E-mail não encontrado ou erro ao enviar.</p>";
+                // Redireciona para a tela de Login com a mensagem de sucesso
+                header("Location: " . URLADM . "login/index");
+                exit;
             }
         }
 
-        // Carrega a View (Crie o arquivo recoverPassword.php na pasta de login/views)
+        $this->data['form'] = $this->dataForm;
         $this->data['sidebarActive'] = "login"; 
-        // Nota: Ajuste o caminho da view conforme sua estrutura de pastas pública
+        
         (new \Core\ConfigView("adms/Views/login/recoverPassword", $this->data))->loadViewLogin();
     }
 }

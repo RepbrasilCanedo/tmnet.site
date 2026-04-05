@@ -24,7 +24,9 @@ class Ranking
         // Pega os dados processados na Model
         $dadosModel = $ranking->getResult();
         $this->data['ranking_geral'] = $dadosModel['geral'] ?? [];
-        $this->data['ranking_divisao'] = $dadosModel['por_divisao'] ?? [];
+        
+        // CORREÇÃO AQUI: Passando as Categorias para a View em vez de Divisões
+        $this->data['ranking_categoria'] = $dadosModel['por_categoria'] ?? [];
         
         $this->data['sidebarActive'] = "ranking";
 

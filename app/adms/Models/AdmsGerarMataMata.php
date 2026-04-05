@@ -18,7 +18,6 @@ class AdmsGerarMataMata
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
-        // 1. Busca todos os inscritos (AGORA COM CATEGORIAS)
         $read->fullRead(
             "SELECT i.adms_user_id, i.grupo, i.adms_categoria_id, u.name, u.genero, cat.nome as cat_nome, c.tipo_genero
              FROM adms_inscricoes i 
@@ -31,7 +30,6 @@ class AdmsGerarMataMata
         );
         $inscritos = $read->getResult();
 
-        // 2. Busca todas as partidas da fase de grupos finalizadas
         $read->fullRead(
             "SELECT vencedor_id FROM adms_partidas 
              WHERE adms_competicao_id = :comp_id AND fase LIKE 'Grupo%' AND vencedor_id IS NOT NULL AND vencedor_id > 0", 
@@ -45,7 +43,6 @@ class AdmsGerarMataMata
             $vitorias[$vid] = isset($vitorias[$vid]) ? $vitorias[$vid] + 1 : 1;
         }
 
-        // 3. Monta a classificação separada por [Categoria][Gênero][Grupo]
         if ($inscritos) {
             foreach ($inscritos as $ins) {
                 $uid = $ins['adms_user_id'];
@@ -53,7 +50,6 @@ class AdmsGerarMataMata
                 $nomeCategoria = $ins['cat_nome'] ?? 'Categoria Livre';
                 $tipoGenero = $ins['tipo_genero'] ?? 1;
                 
-                // Define o Gênero
                 $genId = ($tipoGenero == 2) ? $ins['genero'] : 'X';
                 $genNome = 'Misto';
                 if ($tipoGenero == 2) {
@@ -68,7 +64,6 @@ class AdmsGerarMataMata
                     ];
                 }
 
-                // Limpa o prefixo do grupo para exibição (ex: M-A vira A)
                 $grupoLimpo = str_replace(['M-', 'F-'], '', $ins['grupo']);
 
                 $this->classificacao[$catId][$genId]['grupos'][$grupoLimpo][] = [
@@ -78,7 +73,6 @@ class AdmsGerarMataMata
                 ];
             }
 
-            // 4. Ordena cada grupo por vitórias
             foreach ($this->classificacao as $catId => $generos) {
                 foreach ($generos as $genId => $genData) {
                     foreach ($genData['grupos'] as $grupo => $atletas) {
@@ -95,10 +89,27 @@ class AdmsGerarMataMata
 
     public function gerarChaves(int $compId): void
     {
+        // =================================================================
+        // TRAVA DE SEGURANÇA: Verifica se existem jogos de grupo empatados 0x0
+        // =================================================================
+        $readCheck = new \App\adms\Models\helper\AdmsRead();
+        $readCheck->fullRead(
+            "SELECT id FROM adms_partidas 
+             WHERE adms_competicao_id = :comp_id AND fase LIKE 'Grupo%' AND (vencedor_id IS NULL OR vencedor_id = 0) LIMIT 1",
+            "comp_id={$compId}"
+        );
+        
+        if ($readCheck->getResult()) {
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Não é possível gerar o Mata-Mata! Conclua primeiro todos os jogos da fase de grupos.</p>";
+            $this->result = false;
+            return;
+        }
+
         $this->getClassificacaoGrupos($compId);
 
         if (empty($this->classificacao)) {
             $_SESSION['msg'] = "<p class='alert-danger'>Erro: Não há dados de grupos classificados!</p>";
+            $this->result = false;
             return;
         }
 
@@ -112,9 +123,6 @@ class AdmsGerarMataMata
         $create = new \App\adms\Models\helper\AdmsCreate();
         $jogosInseridos = 0;
 
-        // =================================================================
-        // GERA O MATA-MATA PARA CADA CATEGORIA E GÊNERO SEPARADAMENTE
-        // =================================================================
         foreach ($this->classificacao as $catId => $generos) {
             foreach ($generos as $genId => $genData) {
                 $primeiros = [];
@@ -137,7 +145,6 @@ class AdmsGerarMataMata
                 for ($i = 0; $i < $totalGrupos; $i++) {
                     $idAtletaA = $primeiros[$i]['id'];
                     
-                    // Cruzamento (1º do A joga contra 2º do B)
                     $indiceOponente = ($i % 2 == 0) ? $i + 1 : $i - 1;
                     if (!isset($segundos[$indiceOponente])) {
                         $indiceOponente = $i; 

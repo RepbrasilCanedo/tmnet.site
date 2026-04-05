@@ -113,7 +113,7 @@ class AdmsListUsers
 
             $listUsers = new \App\adms\Models\helper\AdmsRead();
             $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, emp.razao_social razao_social_emp, usr.adms_sits_user_id, usr.empresa_id,
-                        sit.name AS name_sit, col.color FROM adms_users AS usr
+                        sit.name AS name_sit, col.color, lev.name AS name_lev FROM adms_users AS usr
                         INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
                         INNER JOIN adms_colors AS col ON col.id=sit.adms_color_id
@@ -144,20 +144,16 @@ class AdmsListUsers
      */
     
     
-    public function listSearchUsers(int $page, string|null $search_name, string|null $search_empresa): void
+    public function listSearchUsers(int $page, string|null $search_name): void
     {
         $this->page = (int) $page ? $page : 1;
 
         $this->searchName = $search_name;
-        $this->searchEmpresa = $search_empresa;
 
         $this->searchNameValue = $this->searchName . "%";
-        $this->searchEmpresaValue = $this->searchEmpresa . "%";
 
         if ((!empty($this->searchName))) {
             $this->searchUsersName();
-        } elseif ((!empty($this->searchEmpresa))) {
-            $this->searchUsersEmpresa();
         } else {
             $this->listUsers($this->page);
         }
@@ -180,16 +176,14 @@ class AdmsListUsers
             $this->resultPg = $pagination->getResult();
 
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, cont.num_cont AS num_cont, emp.razao_social razao_social_emp, usr.adms_sits_user_id,
-                        sit.name AS name_sit, col.color FROM adms_users AS usr
-                        INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
-                        INNER JOIN adms_contr AS cont ON cont.id=usr.contr_id  
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, usr.adms_sits_user_id,
+                        sit.name AS name_sit, lev.name AS name_lev, col.color FROM adms_users AS usr
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
                         INNER JOIN adms_colors AS col ON col.id=sit.adms_color_id
                         INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id 
-                        WHERE (contr_id= :contr_id) AND (usr.name LIKE :search_name) and lev.order_levels >:order_levels
+                        WHERE (empresa_id= :empresa_id) AND (usr.name LIKE :search_name) and lev.order_levels >:order_levels
                         ORDER BY usr.id DESC
-                        LIMIT :limit OFFSET :offset", "order_levels={$_SESSION['order_levels']}&contr_id={$_SESSION['set_Contr']}&search_name={$this->searchNameValue}&limit={$this->limitResult}&offset={$pagination->getOffset()}");
+                        LIMIT :limit OFFSET :offset", "empresa_id={$_SESSION['emp_user']}&order_levels={$_SESSION['order_levels']}&search_name={$this->searchNameValue}&limit={$this->limitResult}&offset={$pagination->getOffset()}");
 
             $this->resultBd = $listUsers->getResult();
             if ($this->resultBd) {
@@ -202,20 +196,20 @@ class AdmsListUsers
             $pagination = new \App\adms\Models\helper\AdmsPagination(URLADM . 'list-users/index', "?search_name={$this->searchName}");
             $pagination->condition($this->page, $this->limitResult);
             $pagination->pagination("SELECT COUNT(usr.id) AS num_result FROM adms_users usr
-                                WHERE (usr.name LIKE :search_name)", "search_name={$this->searchNameValue}");
+                                    INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id
+                                    WHERE (usr.name LIKE :search_name) and lev.order_levels >:order_levels
+                                    ", "order_levels={$_SESSION['order_levels']}&search_name={$this->searchNameValue}");
             $this->resultPg = $pagination->getResult();
 
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, cont.num_cont AS num_cont, emp.razao_social razao_social_emp, usr.adms_sits_user_id,
-                    sit.name AS name_sit, col.color FROM adms_users AS usr
-                    INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
-                    INNER JOIN adms_contr AS cont ON cont.id=usr.contr_id  
-                    INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
-                    INNER JOIN adms_colors AS col ON col.id=sit.adms_color_id
-                    INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id 
-                    WHERE (usr.name LIKE :search_name) and lev.order_levels >:order_levels
-                    ORDER BY usr.id DESC
-                    LIMIT :limit OFFSET :offset", "order_levels={$_SESSION['order_levels']}&search_name={$this->searchNameValue}&limit={$this->limitResult}&offset={$pagination->getOffset()}");
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, usr.adms_sits_user_id,
+                        sit.name AS name_sit, lev.name AS name_lev, col.color FROM adms_users AS usr
+                        INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
+                        INNER JOIN adms_colors AS col ON col.id=sit.adms_color_id
+                        INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id 
+                        WHERE (usr.name LIKE :search_name) and lev.order_levels >:order_levels
+                        ORDER BY usr.id DESC
+                        LIMIT :limit OFFSET :offset", "order_levels={$_SESSION['order_levels']}&search_name={$this->searchNameValue}&limit={$this->limitResult}&offset={$pagination->getOffset()}");
 
             $this->resultBd = $listUsers->getResult();
             if ($this->resultBd) {
@@ -238,7 +232,7 @@ class AdmsListUsers
             $pagination->pagination("SELECT COUNT(usr.id) AS num_result, emp.razao_social FROM adms_users usr
                                     INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id
                                     INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
-                                    WHERE (emp.razao_social LIKE :empresa_user) and lev.order_levels >:order_levels", "order_levels={$_SESSION['order_levels']}&empresa_user={$this->searchEmpresaValue}"
+                                    WHERE (empresa_id= :empresa_id) AND (emp.razao_social LIKE :empresa_user) and lev.order_levels >:order_levels", "empresa_id={$_SESSION['emp_user']}&order_levels={$_SESSION['order_levels']}&empresa_user={$this->searchEmpresaValue}"
             );
             $this->resultPg = $pagination->getResult();
     
@@ -249,9 +243,9 @@ class AdmsListUsers
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
                         INNER JOIN adms_colors AS col ON col.id=sit.adms_color_id
                         INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id 
-                        WHERE (emp.razao_social  LIKE :empresa_user) and lev.order_levels >:order_levels
+                        WHERE (empresa_id= :empresa_id) AND (emp.razao_social  LIKE :empresa_user) and lev.order_levels >:order_levels
                         ORDER BY usr.id DESC
-                        LIMIT :limit OFFSET :offset", "order_levels={$_SESSION['order_levels']}&empresa_user={$this->searchEmpresaValue}&limit={$this->limitResult}&offset={$pagination->getOffset()}");
+                        LIMIT :limit OFFSET :offset", "empresa_id={$_SESSION['emp_user']}&order_levels={$_SESSION['order_levels']}&empresa_user={$this->searchEmpresaValue}&limit={$this->limitResult}&offset={$pagination->getOffset()}");
     
             $this->resultBd = $listUsers->getResult();
             if ($this->resultBd) {

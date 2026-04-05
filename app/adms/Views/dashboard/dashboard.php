@@ -2,7 +2,9 @@
 if (!defined('D0O8C0A3N1E9D6O1')) {
     header("Location: /");
     die("Erro: Página não encontrada<br>");
+    
 }
+//var_dump($this->data); die;
 $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
 
 ?>
@@ -126,9 +128,9 @@ $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
             <div class="lider-box">
                 <?php 
                     $lider = $this->data['stats']['lider'];
-                    $foto = (!empty($lider['imagem']) && file_exists("app/adms/assets/image/users/" . $lider['imagem'])) 
-                        ? URLADM . "app/adms/assets/image/users/" . $lider['imagem'] 
-                        : URLADM . "app/adms/assets/image/users/icone_usuario.png";
+                    $foto = (!empty($lider['imagem']) && file_exists("app/adms/assets/image/users/"  .$lider['id'] ."/" . $lider['imagem'])) 
+                        ? URLADM . "app/adms/assets/image/users/" .$lider['id'] ."/" . $lider['imagem'] 
+                        : URLADM . "app/adms/assets/image/users/icon_user.png";
                 ?>
                 <img src="<?= $foto ?>" class="lider-img">
                 <div>

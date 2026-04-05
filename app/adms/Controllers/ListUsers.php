@@ -63,12 +63,11 @@ class ListUsers
         }else {
             if (!empty($this->dataForm['SendSearchUser'])) {
                 $this->page = 1;
-                $listUsers->listSearchUsers($this->page, $this->dataForm['search_name'], $this->dataForm['search_empresa']);
+                $listUsers->listSearchUsers($this->page, $this->dataForm['search_name']);
                 $this->data['form'] = $this->dataForm;
-            } elseif ((!empty($this->searchName)) or (!empty($this->searchEmpresa))) {
-                $listUsers->listSearchUsers($this->page, $this->searchName, $this->searchEmpresa);
+            } elseif ((!empty($this->searchName))) {
+                $listUsers->listSearchUsers($this->page, $this->searchName);
                 $this->data['form']['search_name'] = $this->searchName;
-                $this->data['form']['search_empresa'] = $this->searchEmpresa;
             } else {            
                 $listUsers->listUsers($this->page);            
             }

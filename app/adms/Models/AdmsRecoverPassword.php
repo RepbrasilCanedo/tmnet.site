@@ -7,9 +7,6 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     die();
 }
 
-/**
- * Solicitar novo link de senha e disparar e-mail
- */
 class AdmsRecoverPassword
 {
     private bool $result = false;
@@ -21,6 +18,7 @@ class AdmsRecoverPassword
     public function recover(array $data): void
     {
         $this->data = $data;
+        $this->data['email'] = trim($this->data['email']); // Remove espaços em branco acidentais
         
         // 1. Verifica se o e-mail existe no banco
         $read = new \App\adms\Models\helper\AdmsRead();
@@ -28,8 +26,7 @@ class AdmsRecoverPassword
         $this->resultBd = $read->getResult();
 
         if ($this->resultBd) {
-            // 2. Gera a chave de recuperação (Hash seguro)
-            //$this->data['recover_password'] = password_hash($this->resultBd[0]['id'] . date("Y-m-d H:i:s"), PASSWORD_DEFAULT);
+            // 2. Gera a chave de recuperação
             $this->data['recover_password'] = bin2hex(random_bytes(32));
             $this->data['date_recover'] = date('Y-m-d H:i:s');
 
@@ -41,13 +38,15 @@ class AdmsRecoverPassword
             ], "WHERE id=:id", "id={$this->resultBd[0]['id']}");
 
             if ($update->getResult()) {
-                // 4. Se salvou no banco, envia o e-mail usando sua Helper
+                // 4. Se salvou no banco, envia o e-mail
                 $this->sendEmail();
             } else {
+                $_SESSION['msg'] = "<p class='alert-danger'>Erro interno: Falha ao gerar chave de recuperação no banco de dados.</p>";
                 $this->result = false;
             }
         } else {
-            $this->result = false; // E-mail não encontrado
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Este e-mail não está cadastrado no sistema!</p>";
+            $this->result = false; 
         }
     }
 
@@ -56,41 +55,37 @@ class AdmsRecoverPassword
         $nome = explode(" ", $this->resultBd[0]['name'])[0];
         $emailDestino = $this->resultBd[0]['email'];
         
-        // Monta o Link (Certifique-se que URLADM está correta no Config.php)
         $link = URLADM . "update-password/index?key=" . $this->data['recover_password'];
 
-        // Conteúdo HTML do E-mail
         $contentHtml = "Olá <b>$nome</b>,<br><br>";
-        $contentHtml .= "Você solicitou a recuperação de senha no sistema <b>DocNet</b>.<br>";
+        $contentHtml .= "Você solicitou a recuperação de senha no sistema <b>TMNet</b>.<br>";
         $contentHtml .= "Para criar uma nova senha, clique no link abaixo:<br><br>";
         $contentHtml .= "<a href='$link'>Clique aqui para redefinir sua senha</a><br><br>";
         $contentHtml .= "Se o link não abrir, copie e cole este endereço no navegador:<br>";
         $contentHtml .= "$link<br><br>";
         $contentHtml .= "Se você não solicitou isso, por favor, ignore este e-mail.<br><br>";
-        $contentHtml .= "Atenciosamente,<br>Equipe DocNet.";
+        $contentHtml .= "Atenciosamente,<br>Equipe TMNet.";
 
-        // Conteúdo Texto Puro (Fallback)
-        $contentText = "Olá $nome,\n\nVocê solicitou a recuperação de senha no DocNet.\n";
+        $contentText = "Olá $nome,\n\nVocê solicitou a recuperação de senha no TMNet.\n";
         $contentText .= "Acesse o link para redefinir: $link\n\n";
 
-        // Prepara os dados para a sua Helper AdmsPhpMailer
         $emailData = [
             'toEmail' => $emailDestino,
             'toName' => $this->resultBd[0]['name'],
-            'subject' => 'Recuperar Senha - DocNet',
+            'subject' => 'Recuperar Senha - TMNet',
             'contentHtml' => $contentHtml,
             'contentText' => $contentText
         ];
 
-        // Instancia a Helper que você me enviou
         $sendMail = new \App\adms\Models\helper\AdmsPhpMailer();
         $sendMail->sendEmail($emailData);
 
         if ($sendMail->getResult()) {
+            $_SESSION['msg'] = "<p class='alert-success'>Enviamos um link de recuperação para o seu e-mail! (Verifique também o Spam).</p>";
             $this->result = true;
         } else {
-            // Se o e-mail falhar, consideramos erro (para avisar o usuário)
-            // Opcional: Você pode logar o erro aqui se quiser
+            // ERRO DE HOSTGATOR CAPTURADO AQUI:
+            $_SESSION['msg'] = "<p class='alert-danger'>O e-mail existe, mas o servidor da HostGator bloqueou o envio da mensagem. Verifique a configuração do seu arquivo AdmsPhpMailer.php!</p>";
             $this->result = false;
         }
     }

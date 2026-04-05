@@ -39,8 +39,8 @@ abstract class Config
         define('EMAIL_HOST', 'smtp.titan.email');
         define('EMAIL_USER', 'atendimento@repbrasil.salvador.br');
         define('EMAIL_PASS', 'REPbr@s#l9624'); // A senha fica aqui, centralizada
-        define('EMAIL_PORT', 587);
-        define('EMAIL_FROM_NAME', 'DocNet Sistema');
+        define('EMAIL_PORT', 465);
+        define('EMAIL_FROM_NAME', 'Tmnet Sistema');
 
 
         define('HOST', 'localhost');

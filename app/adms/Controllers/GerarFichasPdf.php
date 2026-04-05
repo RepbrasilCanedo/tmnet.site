@@ -47,7 +47,7 @@ class GerarFichasPdf
         $dompdf->render();
 
         $nomeArquivo = "Fichas_de_Mesa_Torneio.pdf";
-        $dompdf->stream($nomeArquivo, ["Attachment" => false]); // false abre na tela, true faz o download direto
+        $dompdf->stream($nomeArquivo, ["Attachment" => false]); 
     }
 
     private function montarHtml(): string
@@ -76,16 +76,18 @@ class GerarFichasPdf
                 
                 .signatures { display: table; width: 100%; margin-top: 15px; font-size: 10px; }
                 .sig-box { display: table-cell; text-align: center; width: 25%; }
-                .sig-line { border-top: 1px solid #000; width: 80%; margin: 0 auto; padding-top: 3px; }
+                .sig-line { border-top: 1px solid #000; width: 80%; margin: 0 auto; padding-top: 3px; font-weight: bold; }
             </style>
         </head>
         <body>";
 
         foreach ($this->jogos as $jogo) {
             
-            // CORREÇÃO: Usando cat_nome agora!
             $nomeCategoria = !empty($jogo['cat_nome']) ? "{$jogo['cat_nome']} - " : "";
             $horarioFormatado = !empty($jogo['horario_previsto']) ? date('H:i', strtotime($jogo['horario_previsto'])) : "A definir";
+            
+            // DOCAN: Lógica da assinatura do Árbitro
+            $textoArbitro = !empty($jogo['nome_arbitro']) ? "Árbitro: " . explode(" ", $jogo['nome_arbitro'])[0] : "Assinatura Árbitro";
 
             $html .= "
             <div class='ficha-box'>
@@ -132,7 +134,7 @@ class GerarFichasPdf
                         <div class='sig-line'>Assinatura Atleta B</div>
                     </div>
                     <div class='sig-box'>
-                        <div class='sig-line'>Assinatura Árbitro</div>
+                        <div class='sig-line'>{$textoArbitro}</div>
                     </div>
                 </div>
             </div>";

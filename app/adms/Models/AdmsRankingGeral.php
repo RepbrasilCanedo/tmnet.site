@@ -18,14 +18,14 @@ class AdmsRankingGeral
         $listar = new \App\adms\Models\helper\AdmsRead();
         $empresaId = $_SESSION['emp_user'];
 
-        // 1. Busca todas as divisões do Clube
-        $listar->fullRead("SELECT id, nome, pontuacao_min, pontuacao_max FROM adms_divisoes WHERE empresa_id = :empresa ORDER BY pontuacao_min ASC", "empresa={$empresaId}");
-        $divisoes = $listar->getResult() ?: [];
+        // 1. Busca todas as CATEGORIAS do Clube
+        $listar->fullRead("SELECT id, nome, idade_minima, idade_maxima, pontuacao_maxima FROM adms_categorias WHERE empresa_id = :empresa ORDER BY pontuacao_maxima DESC, nome ASC", "empresa={$empresaId}");
+        $categorias = $listar->getResult() ?: [];
 
-        // 2. Busca todos os atletas (com ou sem pesquisa)
+        // 2. Busca todos os atletas (AGORA COM MÃO DOMINANTE)
         if (!empty($search['search_nome'])) {
             $listar->fullRead(
-                "SELECT id, name AS nome, apelido, imagem, estilo_jogo, pontuacao_ranking, genero 
+                "SELECT id, name AS nome, apelido, imagem, estilo_jogo, mao_dominante, pontuacao_ranking, genero, data_nascimento 
                  FROM adms_users 
                  WHERE adms_access_level_id = 14 AND empresa_id = :empresa 
                  AND (name LIKE :search OR apelido LIKE :search)
@@ -34,7 +34,7 @@ class AdmsRankingGeral
             );
         } else {
             $listar->fullRead(
-                "SELECT id, name AS nome, apelido, imagem, estilo_jogo, pontuacao_ranking, genero 
+                "SELECT id, name AS nome, apelido, imagem, estilo_jogo, mao_dominante, pontuacao_ranking, genero, data_nascimento 
                  FROM adms_users 
                  WHERE adms_access_level_id = 14 AND empresa_id = :empresa 
                  ORDER BY pontuacao_ranking DESC", 
@@ -42,40 +42,66 @@ class AdmsRankingGeral
             );
         }
 
-        $atletas = $listar->getResult();
+        $atletas = $listar->getResult() ?: [];
 
         // 3. Estruturas de Dados para a View
         $rankingGeral = [];
-        $rankingPorDivisao = [];
+        $rankingPorCategoria = [];
+
+        // Prepara as abas de categorias
+        foreach ($categorias as $cat) {
+            $rankingPorCategoria[$cat['id']] = [
+                'nome_categoria' => $cat['nome'],
+                'geral' => [],
+                'generos' => []
+            ];
+        }
 
         if ($atletas) {
             foreach ($atletas as $atleta) {
-                // A. Adiciona ao Ranking Geral
+                // A. Adiciona todos ao Ranking Geral
                 $rankingGeral[] = $atleta;
 
-                // B. Descobre a Divisão do Atleta
-                $divNomeAtleta = "Sem Divisão";
-                $divIdAtleta = 0;
-                
-                foreach ($divisoes as $div) {
-                    if ($atleta['pontuacao_ranking'] >= $div['pontuacao_min'] && $atleta['pontuacao_ranking'] <= $div['pontuacao_max']) {
-                        $divNomeAtleta = $div['nome'];
-                        $divIdAtleta = $div['id'];
-                        break;
-                    }
+                // Calcula a Idade do Atleta
+                $idade = 0;
+                if (!empty($atleta['data_nascimento'])) {
+                    $nasc = new \DateTime($atleta['data_nascimento']);
+                    $hoje = new \DateTime('today');
+                    $idade = $nasc->diff($hoje)->y;
                 }
-
-                // C. Adiciona ao Ranking Por Divisão (Separado por Gênero)
+                
+                $pontos = (float)$atleta['pontuacao_ranking'];
                 $genero = $atleta['genero'] ?? 'M';
                 $generoNome = ($genero == 'F') ? 'Feminino' : 'Masculino';
 
-                $rankingPorDivisao[$divIdAtleta]['nome_divisao'] = $divNomeAtleta;
-                $rankingPorDivisao[$divIdAtleta]['geral'][] = $atleta; // Todos juntos na divisão
-                $rankingPorDivisao[$divIdAtleta]['generos'][$generoNome][] = $atleta; // Separados por sexo
+                // B. Verifica em quais Categorias o atleta se encaixa
+                foreach ($categorias as $cat) {
+                    $apto = true;
+                    
+                    $idadeMin = (is_numeric($cat['idade_minima']) && $cat['idade_minima'] > 0) ? (int)$cat['idade_minima'] : null;
+                    $idadeMax = (is_numeric($cat['idade_maxima']) && $cat['idade_maxima'] > 0) ? (int)$cat['idade_maxima'] : null;
+                    $pontosMax = (is_numeric($cat['pontuacao_maxima']) && $cat['pontuacao_maxima'] > 0) ? (float)$cat['pontuacao_maxima'] : null;
+
+                    if ($idadeMin !== null && $idade < $idadeMin) $apto = false;
+                    if ($idadeMax !== null && $idade > $idadeMax) $apto = false;
+                    if ($pontosMax !== null && $pontos > $pontosMax) $apto = false;
+
+                    if ($apto) {
+                        $rankingPorCategoria[$cat['id']]['geral'][] = $atleta; 
+                        $rankingPorCategoria[$cat['id']]['generos'][$generoNome][] = $atleta; 
+                    }
+                }
+            }
+        }
+
+        // Remove as categorias que não têm nenhum atleta para não sujar a tela
+        foreach ($rankingPorCategoria as $id => $dados) {
+            if (empty($dados['geral'])) {
+                unset($rankingPorCategoria[$id]);
             }
         }
 
         $this->result['geral'] = $rankingGeral;
-        $this->result['por_divisao'] = $rankingPorDivisao;
+        $this->result['por_categoria'] = $rankingPorCategoria;
     }
 }

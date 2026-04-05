@@ -6,8 +6,19 @@
         <img src="<?php echo URLADM; ?>app/adms/assets/image/logo/logo.png" alt="Docnet" class="logo">
     </div>
 
-    <div class="navbar-right">
+    <div class="navbar-right" style="display: flex; align-items: center;">
         
+        <?php if (isset($_SESSION['adms_access_level_id']) && $_SESSION['adms_access_level_id'] == 14): ?>
+            <a href="<?= URLADM ?>inscricao-atleta/index" class="btn-nav-inscricao">
+                <i class="fa-solid fa-ticket"></i> <span class="nav-text-hide">Torneios</span>
+            </a>
+            <style>
+                .btn-nav-inscricao { background: #28a745; color: white; padding: 6px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 13px; margin-right: 15px; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
+                .btn-nav-inscricao:hover { background: #218838; color: white; transform: scale(1.05); }
+                @media (max-width: 600px) { .nav-text-hide { display: none; } .btn-nav-inscricao { padding: 6px 12px; margin-right: 10px; font-size: 16px; } }
+            </style>
+        <?php endif; ?>
+
         <div class="user-profile">
             <div class="user-info">
                 <span class="user-name"><?= $_SESSION['user_nickname'] ?? 'Usuário' ?></span>

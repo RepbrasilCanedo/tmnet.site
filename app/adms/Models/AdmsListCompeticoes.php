@@ -23,26 +23,41 @@ class AdmsListCompeticoes
     {
         $list = new \App\adms\Models\helper\AdmsRead();
         
-        // Verifica se o usuário digitou algo na busca
+        $filtroQuery = "";
+        $filtroParams = "empresa={$_SESSION['emp_user']}";
+
         if (!empty($search['search_nome'])) {
-            $list->fullRead(
-                "SELECT id, empresa_id, nome_torneio, data_evento, local_evento, tipo_competicao, categoria_cbtm, fator_multiplicador, observacoes
-                 FROM adms_competicoes 
-                 WHERE empresa_id = :empresa AND nome_torneio LIKE :nome
-                 ORDER BY data_evento DESC", 
-                "empresa={$_SESSION['emp_user']}&nome=%{$search['search_nome']}%"
-            );
-        } else {
-            // Busca padrão sem filtro
-            $list->fullRead(
-                "SELECT id, empresa_id, nome_torneio, data_evento, local_evento, tipo_competicao, categoria_cbtm, fator_multiplicador, observacoes
-                 FROM adms_competicoes 
-                 WHERE empresa_id = :empresa
-                 ORDER BY data_evento DESC", 
-                "empresa={$_SESSION['emp_user']}"
-            );
+            $filtroQuery = "AND c.nome_torneio LIKE :nome";
+            $filtroParams .= "&nome=%{$search['search_nome']}%";
         }
 
-        $this->result = $list->getResult();
+        // Busca Inteligente: Traz os dados do torneio + status de inscrições + progresso dos jogos
+        $list->fullRead(
+            "SELECT c.id, c.nome_torneio, c.data_evento, c.local_evento, c.categoria_cbtm, c.fator_multiplicador, c.status_inscricao,
+                    (SELECT COUNT(id) FROM adms_partidas WHERE adms_competicao_id = c.id) as total_partidas,
+                    (SELECT COUNT(id) FROM adms_partidas WHERE adms_competicao_id = c.id AND vencedor_id IS NOT NULL AND vencedor_id > 0) as partidas_concluidas
+             FROM adms_competicoes c
+             WHERE c.empresa_id = :empresa {$filtroQuery}
+             ORDER BY c.data_evento DESC", 
+            $filtroParams
+        );
+
+        $torneios = $list->getResult() ?: [];
+
+        // Trata o Status do Torneio no PHP antes de enviar para a View
+        foreach ($torneios as $key => $t) {
+            $statusTorneio = "Aguardando";
+            
+            if ($t['total_partidas'] > 0) {
+                if ($t['total_partidas'] == $t['partidas_concluidas']) {
+                    $statusTorneio = "Concluído";
+                } else {
+                    $statusTorneio = "Em Andamento";
+                }
+            }
+            $torneios[$key]['status_torneio'] = $statusTorneio;
+        }
+
+        $this->result = $torneios;
     }
 }

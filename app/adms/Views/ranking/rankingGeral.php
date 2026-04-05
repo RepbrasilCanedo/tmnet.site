@@ -55,8 +55,8 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 
         <div class="tabs-header">
             <button class="tab-btn active" onclick="openTab('tab-geral')">Ranking Geral</button>
-            <?php foreach ($this->data['ranking_divisao'] as $divId => $divData): ?>
-                <button class="tab-btn" onclick="openTab('tab-div-<?= $divId ?>')"><?= $divData['nome_divisao'] ?></button>
+            <?php foreach ($this->data['ranking_categoria'] as $catId => $catData): ?>
+                <button class="tab-btn" onclick="openTab('tab-cat-<?= $catId ?>')"><?= $catData['nome_categoria'] ?></button>
             <?php endforeach; ?>
         </div>
 
@@ -72,32 +72,32 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
             </div>
         </div>
 
-        <?php foreach ($this->data['ranking_divisao'] as $divId => $divData): ?>
-            <div id="tab-div-<?= $divId ?>" class="tab-content">
+        <?php foreach ($this->data['ranking_categoria'] as $catId => $catData): ?>
+            <div id="tab-cat-<?= $catId ?>" class="tab-content">
                 
                 <div class="gen-filters">
-                    <button class="gen-btn active-gen" onclick="filterGen('<?= $divId ?>', 'Todos')">Misto (Geral)</button>
-                    <?php if(isset($divData['generos']['Masculino'])): ?>
-                        <button class="gen-btn" onclick="filterGen('<?= $divId ?>', 'Masculino')">Masculino</button>
+                    <button class="gen-btn active-gen" onclick="filterGen('<?= $catId ?>', 'Todos')">Misto (Geral)</button>
+                    <?php if(isset($catData['generos']['Masculino'])): ?>
+                        <button class="gen-btn" onclick="filterGen('<?= $catId ?>', 'Masculino')">Masculino</button>
                     <?php endif; ?>
-                    <?php if(isset($divData['generos']['Feminino'])): ?>
-                        <button class="gen-btn" onclick="filterGen('<?= $divId ?>', 'Feminino')">Feminino</button>
+                    <?php if(isset($catData['generos']['Feminino'])): ?>
+                        <button class="gen-btn" onclick="filterGen('<?= $catId ?>', 'Feminino')">Feminino</button>
                     <?php endif; ?>
                 </div>
 
-                <div class="ranking-grid" id="grid-<?= $divId ?>-Todos">
-                    <?php renderCardsRanking($divData['geral'], $this->data['form']); ?>
+                <div class="ranking-grid" id="grid-<?= $catId ?>-Todos">
+                    <?php renderCardsRanking($catData['geral'], $this->data['form']); ?>
                 </div>
                 
-                <?php if(isset($divData['generos']['Masculino'])): ?>
-                    <div class="ranking-grid" id="grid-<?= $divId ?>-Masculino" style="display: none;">
-                        <?php renderCardsRanking($divData['generos']['Masculino'], $this->data['form']); ?>
+                <?php if(isset($catData['generos']['Masculino'])): ?>
+                    <div class="ranking-grid" id="grid-<?= $catId ?>-Masculino" style="display: none;">
+                        <?php renderCardsRanking($catData['generos']['Masculino'], $this->data['form']); ?>
                     </div>
                 <?php endif; ?>
 
-                <?php if(isset($divData['generos']['Feminino'])): ?>
-                    <div class="ranking-grid" id="grid-<?= $divId ?>-Feminino" style="display: none;">
-                        <?php renderCardsRanking($divData['generos']['Feminino'], $this->data['form']); ?>
+                <?php if(isset($catData['generos']['Feminino'])): ?>
+                    <div class="ranking-grid" id="grid-<?= $catId ?>-Feminino" style="display: none;">
+                        <?php renderCardsRanking($catData['generos']['Feminino'], $this->data['form']); ?>
                     </div>
                 <?php endif; ?>
 
@@ -126,11 +126,14 @@ function renderCardsRanking($listaAtletas, $formSearch) {
             elseif($posicao == 3) { $classePosicao = "pos-3"; $medalha = "🥉"; }
         }
         
-        $foto = (!empty($atleta['imagem']) && file_exists("app/adms/assets/image/users/" . $atleta['imagem'])) 
-                ? URLADM . "app/adms/assets/image/users/" . $atleta['imagem'] 
-                : URLADM . "app/adms/assets/image/users/icone_usuario.png";
+        $fallbackIcon = URLADM . "app/adms/assets/image/users/icon_user.png";
+        $foto = !empty($atleta['imagem']) ? URLADM . "app/adms/assets/image/users/{$atleta['id']}/{$atleta['imagem']}" : $fallbackIcon;
         
         $iconeGen = ($atleta['genero'] == 'F') ? '👩' : '👨';
+        
+        // Formata os dados de Estilo e Mão Dominante
+        $estilo = !empty($atleta['estilo_jogo']) ? $atleta['estilo_jogo'] : 'N/A';
+        $mao = !empty($atleta['mao_dominante']) ? $atleta['mao_dominante'] : 'N/A';
 
         // =========================================================
         // TRAVA DE PRIVACIDADE NA VIEW
@@ -141,7 +144,7 @@ function renderCardsRanking($listaAtletas, $formSearch) {
 
         echo "<div class='atleta-card {$classePosicao}'>
                 <div class='pos-box'>{$medalha}</div>
-                <img src='{$foto}' class='img-box'>
+                <img src='{$foto}' class='img-box' onerror=\"this.onerror=null;this.src='{$fallbackIcon}';\">
                 <div class='info-box'>";
         
         if ($podeClicar) {
@@ -151,7 +154,7 @@ function renderCardsRanking($listaAtletas, $formSearch) {
         }
 
         echo "      <strong>{$atleta['nome']} {$iconeGen}</strong>
-                    <small>{$atleta['apelido']} | Estilo: " . ($atleta['estilo_jogo'] ?? 'N/A') . "</small>";
+                    <small>{$atleta['apelido']} | Estilo: {$estilo} | Mão: <b>{$mao}</b></small>";
         
         if ($podeClicar) {
             echo "</a>";
@@ -169,7 +172,7 @@ function renderCardsRanking($listaAtletas, $formSearch) {
 ?>
 
 <script>
-// JS para Alternar as Abas Principais (Divisões)
+// JS para Alternar as Abas Principais (Categorias)
 function openTab(tabName) {
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tab-content");
@@ -184,18 +187,18 @@ function openTab(tabName) {
     event.currentTarget.classList.add("active");
 }
 
-// JS para Alternar o Gênero dentro de uma Divisão
-function filterGen(divId, genero) {
-    var container = document.getElementById('tab-div-' + divId);
+// JS para Alternar o Gênero dentro de uma Categoria
+function filterGen(catId, genero) {
+    var container = document.getElementById('tab-cat-' + catId);
     
-    // Esconde todas as grids desta divisão
+    // Esconde todas as grids desta categoria
     var grids = container.getElementsByClassName('ranking-grid');
     for (var i = 0; i < grids.length; i++) {
         grids[i].style.display = 'none';
     }
     
     // Mostra apenas a selecionada
-    document.getElementById('grid-' + divId + '-' + genero).style.display = 'flex';
+    document.getElementById('grid-' + catId + '-' + genero).style.display = 'flex';
     
     // Atualiza o botão ativo
     var btns = container.getElementsByClassName('gen-btn');

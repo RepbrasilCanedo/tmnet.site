@@ -11,7 +11,23 @@ $isFinished = $progresso['is_finished'];
 $hasGrupos = $progresso['has_grupos'];
 $hasMataMata = $progresso['has_matamata'];
 
-// Lógica do Status de Inscrição
+// ========================================================================
+// VERIFICA SE EXISTEM JOGOS DE GRUPO PENDENTES PARA BLOQUEAR O MATA-MATA
+// ========================================================================
+$pendenciasGrupos = false;
+if (!empty($partidas)) {
+    foreach ($partidas as $p) {
+        if (stripos($p['fase'], 'Grupo') !== false && empty($p['vencedor'])) {
+            $pendenciasGrupos = true;
+            break;
+        }
+    }
+}
+// Desativa o botão se já tem mata-mata, se já acabou, se NÃO tem grupos, OU se tem jogos pendentes!
+$btnMataMataDisabled = ($hasMataMata || $isFinished || !$hasGrupos || $pendenciasGrupos) ? 'btn-disabled' : '';
+$avisoMataMata = $pendenciasGrupos ? "title='Conclua todas as partidas da fase de grupos primeiro!'" : "";
+
+
 $statusInscricao = $detalhes['status_inscricao'] ?? 1;
 if ($statusInscricao == 1) {
     $btnClass = "btn-danger";
@@ -27,7 +43,6 @@ if ($statusInscricao == 1) {
 ?>
 
 <style>
-    /* Estilo para Botões Bloqueados */
     .btn-disabled {
         background-color: #6c757d !important;
         color: #e2e3e5 !important;
@@ -51,6 +66,8 @@ if ($statusInscricao == 1) {
             </span>
             
             <div class="top-list-right">
+                <a href="<?= URLADM ?>edit-competicao/index/<?= $detalhes['id'] ?>" class="btn-info" style="background-color: #6c757d; color: white;">✏️ Editar Dados</a>
+                
                 <a href="<?= URLADM ?>sorteio-grupos/index/<?= $detalhes['id'] ?>" class="btn-info <?= ($hasGrupos || $isFinished) ? 'btn-disabled' : '' ?>" style="background-color: #17a2b8;">Chaveamento</a>
                 
                 <a href="<?= URLADM ?>gerar-agenda/index/<?= $detalhes['id'] ?>" class="btn-warning <?= $isFinished ? 'btn-disabled' : '' ?>" style="background-color: #28a745;">Mapas de Mesa</a>
@@ -59,7 +76,7 @@ if ($statusInscricao == 1) {
                     <a href="<?= URLADM ?>gerenciar-inscricoes/index/<?= $detalhes['id'] ?>" class="btn-info <?= $isFinished ? 'btn-disabled' : '' ?>" style="background-color: #0044cc; color: white;">📋 Gerir Inscritos</a>
                 <?php endif; ?>
                 
-                <a href="<?= URLADM ?>gerar-mata-mata/index/<?= $detalhes['id'] ?>" class="btn-warning <?= ($hasMataMata || $isFinished) ? 'btn-disabled' : '' ?>" style="background-color: #28a899;">Mata Mata</a>
+                <a href="<?= URLADM ?>gerar-mata-mata/index/<?= $detalhes['id'] ?>" class="btn-warning <?= $btnMataMataDisabled ?>" <?= $avisoMataMata ?> style="background-color: #28a899;">Mata Mata</a>
                 
                 <a href="<?= URLADM ?>avancar-mata-mata/index/<?= $detalhes['id'] ?>" class="btn-success <?= (!$hasMataMata || $isFinished) ? 'btn-disabled' : '' ?>" style="background-color: #0044cc;">Avançar Fase</a>
                 
