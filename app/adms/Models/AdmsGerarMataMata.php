@@ -18,13 +18,14 @@ class AdmsGerarMataMata
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
+        // DOCAN FIX: Removido o bloqueio "AND i.grupo != 'Único'" para aceitar Todos contra Todos
         $read->fullRead(
             "SELECT i.adms_user_id, i.grupo, i.adms_categoria_id, u.name, u.genero, cat.nome as cat_nome, c.tipo_genero
              FROM adms_inscricoes i 
              INNER JOIN adms_users u ON u.id = i.adms_user_id 
              INNER JOIN adms_competicoes c ON c.id = i.adms_competicao_id
              LEFT JOIN adms_categorias cat ON cat.id = i.adms_categoria_id
-             WHERE i.adms_competicao_id = :comp_id AND i.grupo IS NOT NULL AND i.grupo != 'Único'
+             WHERE i.adms_competicao_id = :comp_id AND i.grupo IS NOT NULL
              ORDER BY cat.pontuacao_maxima DESC, cat.nome ASC, i.grupo ASC", 
             "comp_id={$compId}"
         );
@@ -89,9 +90,6 @@ class AdmsGerarMataMata
 
     public function gerarChaves(int $compId): void
     {
-        // =================================================================
-        // TRAVA DE SEGURANÇA: Verifica se existem jogos de grupo empatados 0x0
-        // =================================================================
         $readCheck = new \App\adms\Models\helper\AdmsRead();
         $readCheck->fullRead(
             "SELECT id FROM adms_partidas 
@@ -125,47 +123,97 @@ class AdmsGerarMataMata
 
         foreach ($this->classificacao as $catId => $generos) {
             foreach ($generos as $genId => $genData) {
-                $primeiros = [];
-                $segundos = [];
+                
+                // CONTA QUANTOS GRUPOS EXISTEM NESTA CATEGORIA
+                $numGrupos = count($genData['grupos']);
 
-                foreach ($genData['grupos'] as $grupo => $atletas) {
-                    if (isset($atletas[0])) $primeiros[] = $atletas[0];
-                    if (isset($atletas[1])) $segundos[] = $atletas[1];
-                }
+                if ($numGrupos == 1) {
+                    // =========================================================
+                    // LÓGICA 1: TODOS CONTRA TODOS (Apenas 1 Grupo Único)
+                    // =========================================================
+                    $grupoNome = array_key_first($genData['grupos']);
+                    $atletas = $genData['grupos'][$grupoNome];
+                    $qtdAtletas = count($atletas);
 
-                $qtdClassificados = count($primeiros) + count($segundos);
-                if ($qtdClassificados < 2) continue;
+                    if ($qtdAtletas < 2) continue;
 
-                $nomeFase = "Final";
-                if ($qtdClassificados > 2 && $qtdClassificados <= 4) $nomeFase = "Semifinal";
-                elseif ($qtdClassificados > 4 && $qtdClassificados <= 8) $nomeFase = "Quartas de Final";
-                elseif ($qtdClassificados > 8 && $qtdClassificados <= 16) $nomeFase = "Oitavas de Final";
+                    $cruzamentos = [];
+                    $nomeFase = "Final";
 
-                $totalGrupos = count($primeiros);
-                for ($i = 0; $i < $totalGrupos; $i++) {
-                    $idAtletaA = $primeiros[$i]['id'];
-                    
-                    $indiceOponente = ($i % 2 == 0) ? $i + 1 : $i - 1;
-                    if (!isset($segundos[$indiceOponente])) {
-                        $indiceOponente = $i; 
+                    // Define Cruzamentos Olímpicos dependendo do número de inscritos
+                    if ($qtdAtletas >= 8) {
+                        $nomeFase = "Quartas de Final";
+                        $cruzamentos = [[0,7], [3,4], [2,5], [1,6]]; 
+                    } elseif ($qtdAtletas >= 4) {
+                        $nomeFase = "Semifinal";
+                        $cruzamentos = [[0,3], [1,2]];
+                    } elseif ($qtdAtletas >= 2) {
+                        $nomeFase = "Final";
+                        $cruzamentos = [[0,1]];
                     }
-                    $idAtletaB = $segundos[$indiceOponente]['id'];
 
-                    $dadosPartida = [
-                        'adms_competicao_id' => $compId,
-                        'adms_categoria_id' => ($catId > 0) ? $catId : null,
-                        'genero_partida' => $genId, 
-                        'atleta_a_id' => $idAtletaA,
-                        'atleta_b_id' => $idAtletaB,
-                        'fase' => $nomeFase,
-                        'mesa' => null, 
-                        'horario_previsto' => null,
-                        'status_partida' => 'Agendado',
-                        'created' => date("Y-m-d H:i:s")
-                    ];
+                    foreach ($cruzamentos as $par) {
+                        $dadosPartida = [
+                            'adms_competicao_id' => $compId,
+                            'adms_categoria_id' => ($catId > 0) ? $catId : null,
+                            'genero_partida' => $genId, 
+                            'atleta_a_id' => $atletas[$par[0]]['id'],
+                            'atleta_b_id' => $atletas[$par[1]]['id'],
+                            'fase' => $nomeFase,
+                            'mesa' => null, 
+                            'horario_previsto' => null,
+                            'status_partida' => 'Agendado',
+                            'created' => date("Y-m-d H:i:s")
+                        ];
+                        $create->exeCreate("adms_partidas", $dadosPartida);
+                        $jogosInseridos++;
+                    }
 
-                    $create->exeCreate("adms_partidas", $dadosPartida);
-                    $jogosInseridos++;
+                } else {
+                    // =========================================================
+                    // LÓGICA 2: MÚLTIPLOS GRUPOS (Padrão: Passam 2 por grupo)
+                    // =========================================================
+                    $primeiros = [];
+                    $segundos = [];
+
+                    foreach ($genData['grupos'] as $grupo => $atletas) {
+                        if (isset($atletas[0])) $primeiros[] = $atletas[0];
+                        if (isset($atletas[1])) $segundos[] = $atletas[1];
+                    }
+
+                    $qtdClassificados = count($primeiros) + count($segundos);
+                    if ($qtdClassificados < 2) continue;
+
+                    $nomeFase = "Final";
+                    if ($qtdClassificados > 2 && $qtdClassificados <= 4) $nomeFase = "Semifinal";
+                    elseif ($qtdClassificados > 4 && $qtdClassificados <= 8) $nomeFase = "Quartas de Final";
+                    elseif ($qtdClassificados > 8 && $qtdClassificados <= 16) $nomeFase = "Oitavas de Final";
+
+                    $totalGrupos = count($primeiros);
+                    for ($i = 0; $i < $totalGrupos; $i++) {
+                        $idAtletaA = $primeiros[$i]['id'];
+                        
+                        $indiceOponente = ($i % 2 == 0) ? $i + 1 : $i - 1;
+                        if (!isset($segundos[$indiceOponente])) {
+                            $indiceOponente = $i; 
+                        }
+                        $idAtletaB = $segundos[$indiceOponente]['id'];
+
+                        $dadosPartida = [
+                            'adms_competicao_id' => $compId,
+                            'adms_categoria_id' => ($catId > 0) ? $catId : null,
+                            'genero_partida' => $genId, 
+                            'atleta_a_id' => $idAtletaA,
+                            'atleta_b_id' => $idAtletaB,
+                            'fase' => $nomeFase,
+                            'mesa' => null, 
+                            'horario_previsto' => null,
+                            'status_partida' => 'Agendado',
+                            'created' => date("Y-m-d H:i:s")
+                        ];
+                        $create->exeCreate("adms_partidas", $dadosPartida);
+                        $jogosInseridos++;
+                    }
                 }
             }
         }

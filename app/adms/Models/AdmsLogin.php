@@ -15,6 +15,18 @@ class AdmsLogin {
 
     public function login(array $data): void {
         $this->data = $data;
+        
+        // =========================================================================
+        // DOCAN FIX: Blindagem pesada contra o Autofill e caracteres especiais!
+        // =========================================================================
+        // 1. Remove espaços invisíveis que o navegador/telemóvel coloca no fim
+        // 2. Força para minúsculas logo no servidor
+        $userClean = trim(strtolower($this->data['user']));
+        
+        // 3. O urlencode() é a chave de ouro! Evita que símbolos especiais 
+        // quebrem o parse_string da sua classe AdmsRead.
+        $userBind = urlencode($userClean);
+
         $readUser = new \App\adms\Models\helper\AdmsRead();
 
         // Tenta buscar no Administrativo (adms_users)
@@ -23,7 +35,7 @@ class AdmsLogin {
                 INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id
                 INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
                 WHERE (usr.adms_sits_user_id= :situacao) AND (usr.user =:user OR usr.email =:email) 
-                LIMIT :limit", "situacao=1&user={$this->data['user']}&email={$this->data['user']}&limit=1");
+                LIMIT :limit", "situacao=1&user={$userBind}&email={$userBind}&limit=1");
 
         $this->resultBd = $readUser->getResult();
 
@@ -33,7 +45,7 @@ class AdmsLogin {
                     FROM adms_users_final AS usr
                     INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id
                     WHERE (usr.adms_sits_user_id= :situacao) AND (usr.user=:user OR usr.email =:email) 
-                    LIMIT :limit", "situacao=1&user={$this->data['user']}&email={$this->data['user']}&limit=1");
+                    LIMIT :limit", "situacao=1&user={$userBind}&email={$userBind}&limit=1");
             $this->resultBd = $readUser->getResult();
         }
 
@@ -66,6 +78,4 @@ class AdmsLogin {
             $this->result = false;
         }
     }
-
-
 }

@@ -34,7 +34,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
         </div>
 
         <div class="content-adm" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px;">
-            <p style="margin-top: 0;"><strong>Atenção:</strong> Certifique-se de que todos os jogos da fase de grupos terminaram. O sistema extrairá os <strong>2 melhores</strong> de cada grupo, em cada categoria e gênero, e criará o cruzamento.</p>
+            <p style="margin-top: 0;"><strong>Atenção:</strong> Certifique-se de que todos os jogos da fase de grupos terminaram. O sistema extrairá os <strong>2 melhores</strong> de cada grupo (ou até os <strong>8 melhores</strong> caso seja Grupo Único) e criará o cruzamento perfeito.</p>
             
             <form method="POST" action="" style="margin-top: 15px;">
                 <button type="submit" name="AdmsGerarMataMata" class="btn-success" value="Gerar" style="background-color: #28a745; font-size: 16px; height: 40px; padding: 0 20px; border-radius: 4px; border: none; color: white; cursor: pointer;">
@@ -48,13 +48,16 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
             <?php foreach ($this->data['classificacao'] as $catId => $generos): ?>
                 
                 <?php 
-                // Pega o nome da categoria do primeiro item para exibir no bloco
                 $nomeCategoriaBloco = reset($generos)['nome_categoria'];
                 ?>
                 <div class="divisao-title">🏆 <?= $nomeCategoriaBloco ?></div>
                 
                 <?php foreach ($generos as $genId => $genData): 
                     $corGen = ($genId == 'F') ? '#e83e8c' : '#0044cc';
+                    
+                    // DOCAN: Descobre quantos classificados destacar visualmente
+                    $numGrupos = count($genData['grupos']);
+                    $limiteClassificados = ($numGrupos == 1) ? 8 : 2;
                 ?>
                     
                     <?php if ($genData['nome_genero'] != 'Misto'): ?>
@@ -82,8 +85,8 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                                     <?php 
                                     $pos = 1;
                                     foreach ($atletas as $atleta): 
-                                        $classeRow = ($pos <= 2) ? 'classificado' : 'eliminado';
-                                        $selo = ($pos <= 2) ? '⭐' : '';
+                                        $classeRow = ($pos <= $limiteClassificados) ? 'classificado' : 'eliminado';
+                                        $selo = ($pos <= $limiteClassificados) ? '⭐' : '';
                                     ?>
                                         <tr>
                                             <td class="<?= $classeRow ?>" style="text-align: center;"><?= $pos ?>º</td>
