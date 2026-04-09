@@ -10,14 +10,25 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 class ViewCompeticao
 {
     private array|string|null $data;
+    private int|string|null $id;
 
     public function index(int|string|null $id = null): void
     {
-        $id = (int) $id;
+        $this->id = (int) $id;
 
-        if (!empty($id)) {
+        if (!empty($this->id)) {
             $viewComp = new \App\adms\Models\AdmsViewCompeticao();
-            $viewComp->viewCompeticao($id);
+            
+            // DOCAN FIX: Interceta o clique do botão "Processar Ranking"
+            $formData = filter_input_array(INPUT_POST, FILTER_DEFAULT);
+            if (!empty($formData['ProcessarRanking'])) {
+                $viewComp->processarRankingOficial($this->id);
+                // Redireciona para limpar o POST
+                header("Location: " . URLADM . "view-competicao/index/{$this->id}");
+                exit;
+            }
+
+            $viewComp->viewCompeticao($this->id);
             $this->data['viewComp'] = $viewComp->getResult();
 
             if ($this->data['viewComp']['detalhes']) {

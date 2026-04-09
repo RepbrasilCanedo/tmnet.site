@@ -86,7 +86,7 @@ class AdmsListUsers
             $this->resultPg = $pagination->getResult();
 
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, emp.razao_social razao_social_emp, usr.adms_sits_user_id, usr.empresa_id,
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.telefone, emp.razao_social razao_social_emp, usr.adms_sits_user_id, usr.empresa_id,
                         sit.name AS name_sit, col.color, lev.name AS name_lev FROM adms_users AS usr
                         INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
@@ -112,7 +112,7 @@ class AdmsListUsers
             $this->resultPg = $pagination->getResult();
 
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, emp.razao_social razao_social_emp, usr.adms_sits_user_id, usr.empresa_id,
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.telefone, emp.razao_social razao_social_emp, usr.adms_sits_user_id, usr.empresa_id,
                         sit.name AS name_sit, col.color, lev.name AS name_lev FROM adms_users AS usr
                         INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
@@ -176,7 +176,7 @@ class AdmsListUsers
             $this->resultPg = $pagination->getResult();
 
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, usr.adms_sits_user_id,
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.telefone, usr.adms_sits_user_id,
                         sit.name AS name_sit, lev.name AS name_lev, col.color FROM adms_users AS usr
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
                         INNER JOIN adms_colors AS col ON col.id=sit.adms_color_id
@@ -202,7 +202,7 @@ class AdmsListUsers
             $this->resultPg = $pagination->getResult();
 
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, usr.adms_sits_user_id,
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.telefone, usr.adms_sits_user_id,
                         sit.name AS name_sit, lev.name AS name_lev, col.color FROM adms_users AS usr
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
                         INNER JOIN adms_colors AS col ON col.id=sit.adms_color_id
@@ -237,7 +237,7 @@ class AdmsListUsers
             $this->resultPg = $pagination->getResult();
     
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr,usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.tel_1, emp.razao_social razao_social_emp, usr.adms_sits_user_id,
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr,usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.email, usr.telefone, emp.razao_social razao_social_emp, usr.adms_sits_user_id,
                         sit.name AS name_sit, col.color  lev.name AS name_lev FROM adms_users AS usr
                         INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
                         INNER JOIN adms_sits_users AS sit ON sit.id=usr.adms_sits_user_id
@@ -266,7 +266,7 @@ class AdmsListUsers
             $this->resultPg = $pagination->getResult();
     
             $listUsers = new \App\adms\Models\helper\AdmsRead();
-            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.email, usr.tel_1, cont.num_cont AS num_cont, emp.razao_social razao_social_emp, usr.adms_sits_user_id,
+            $listUsers->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.email, usr.telefone, cont.num_cont AS num_cont, emp.razao_social razao_social_emp, usr.adms_sits_user_id,
                         sit.name AS name_sit, col.color FROM adms_users AS usr
                         INNER JOIN adms_emp_principal AS emp ON emp.id=usr.empresa_id
                         INNER JOIN adms_contr AS cont ON cont.id=usr.contr_id  

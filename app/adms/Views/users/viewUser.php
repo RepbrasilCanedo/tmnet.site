@@ -93,7 +93,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 
                 <div class="view-det-adm">
                     <span class="view-adm-title">Tel: </span>
-                    <span class="view-adm-info"><?php echo "$tel_1 " . " / " . " $tel_2 "; ?></span>
+                    <span class="view-adm-info"><?php echo "$telefone"; ?></span>
                 </div>
 
                 <div class="view-det-adm">

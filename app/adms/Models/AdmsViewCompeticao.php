@@ -17,13 +17,11 @@ class AdmsViewCompeticao
     {
         $view = new \App\adms\Models\helper\AdmsRead();
         
-        // 1. Busca detalhes da competição
         $view->fullRead("SELECT * FROM adms_competicoes WHERE id=:id AND empresa_id=:empresa LIMIT 1", 
                         "id={$id}&empresa={$_SESSION['emp_user']}");
         $this->result['detalhes'] = $view->getResult()[0] ?? null;
 
         if ($this->result['detalhes']) {
-            // 2. Busca todas as partidas deste torneio (Atualizado para CATEGORIAS)
             $view->fullRead(
                 "SELECT p.*, ua.name as atleta_a, ub.name as atleta_b, uv.name as vencedor, c_cat.nome as cat_nome, c.tipo_genero
                  FROM adms_partidas p
@@ -38,9 +36,6 @@ class AdmsViewCompeticao
             );
             $this->result['partidas'] = $view->getResult();
 
-            // =========================================================================
-            // RASTREADOR DE PROGRESSO DO TORNEIO (TRAVAS DE SEGURANÇA)
-            // =========================================================================
             $statusProgresso = [
                 'has_grupos' => false,
                 'has_matamata' => false,
@@ -57,6 +52,7 @@ class AdmsViewCompeticao
                         $statusProgresso['has_matamata'] = true;
                     }
 
+                    // DOCAN FIX: Conta exclusivamente quantas "Finais" existem e quantas terminaram
                     if ($p['fase'] === 'Final') {
                         $statusProgresso['total_finais']++;
                         if (!empty($p['vencedor_id']) && $p['vencedor_id'] > 0) {
@@ -66,15 +62,16 @@ class AdmsViewCompeticao
                 }
             }
 
-            // Se existem finais e todas elas têm vencedor, o torneio acabou!
+            // =========================================================================
+            // A REGRA DE OURO: O torneio SÓ ACABA se existirem Finais E todas estiverem concluídas!
+            // =========================================================================
             if ($statusProgresso['total_finais'] > 0 && $statusProgresso['total_finais'] === $statusProgresso['finais_concluidas']) {
                 $statusProgresso['is_finished'] = true;
             }
 
             $this->result['status_progresso'] = $statusProgresso;
-            // =========================================================================
 
-            // 3. INTELIGÊNCIA DO PÓDIO (Separado por Categoria E Gênero)
+            // INTELIGÊNCIA DO PÓDIO
             $view->fullRead(
                 "SELECT p.fase, p.vencedor_id, p.atleta_a_id, p.atleta_b_id, p.genero_partida,
                         ua.name as atleta_a_nome, ub.name as atleta_b_nome, uv.name as vencedor_nome,
@@ -127,5 +124,147 @@ class AdmsViewCompeticao
             }
             $this->result['podios'] = $podios;
         }
+    }
+
+    // =========================================================================
+    // O MOTOR DE PROCESSAMENTO DO RANKING (CBTM) CONTINUA INTACTO AQUI
+    // =========================================================================
+    public function processarRankingOficial(int $compId): void
+    {
+        $view = new \App\adms\Models\helper\AdmsRead();
+        
+        $view->fullRead("SELECT * FROM adms_competicoes WHERE id=:id LIMIT 1", "id={$compId}");
+        $comp = $view->getResult()[0] ?? null;
+
+        if (!$comp || $comp['ranking_processado'] == 1) {
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Competição não encontrada ou Ranking já processado!</p>";
+            return;
+        }
+
+        $pesoEvento = (float) $comp['fator_multiplicador'];
+        $rankingAtletas = [];
+
+        $addPontos = function(int $userId, int $pontos) use (&$rankingAtletas) {
+            if (!isset($rankingAtletas[$userId])) $rankingAtletas[$userId] = 0;
+            $rankingAtletas[$userId] += $pontos;
+        };
+
+        // ETAPA A: PONTOS DE PARTICIPAÇÃO
+        $ptsParticipacao = (int) $comp['pts_participacao'];
+        if ($ptsParticipacao > 0) {
+            $view->fullRead("SELECT DISTINCT adms_user_id FROM adms_inscricoes WHERE adms_competicao_id=:id", "id={$compId}");
+            if ($view->getResult()) {
+                foreach ($view->getResult() as $inscrito) {
+                    $addPontos($inscrito['adms_user_id'], $ptsParticipacao);
+                }
+            }
+        }
+
+        // ETAPA B: PÓDIOS
+        $view->fullRead(
+            "SELECT id, fase, vencedor_id, atleta_a_id, atleta_b_id 
+             FROM adms_partidas 
+             WHERE adms_competicao_id = :comp_id AND vencedor_id IS NOT NULL AND vencedor_id > 0", 
+            "comp_id={$compId}"
+        );
+        $todasPartidas = $view->getResult() ?: [];
+
+        foreach ($todasPartidas as $p) {
+            $vencedor = $p['vencedor_id'];
+            $perdedor = ($p['vencedor_id'] == $p['atleta_a_id']) ? $p['atleta_b_id'] : $p['atleta_a_id'];
+
+            if ($p['fase'] === 'Final') {
+                $addPontos($vencedor, (int)$comp['pts_campeao']); 
+                $addPontos($perdedor, (int)$comp['pts_vice']);    
+            } elseif ($p['fase'] === 'Semifinal') {
+                $addPontos($perdedor, (int)$comp['pts_terceiro']);
+            } elseif ($p['fase'] === 'Quartas de Final') {
+                $addPontos($perdedor, (int)$comp['pts_quartas']); 
+            }
+        }
+
+        // ETAPA C: RATING DINÂMICO CBTM
+        $ptsVitoriaFixa = (int)$comp['pts_vitoria_jogo'];
+        $ptsDerrotaFixa = (int)$comp['pts_derrota_jogo'];
+
+        $usarMotorCbtm = ($ptsVitoriaFixa == 0 && $ptsDerrotaFixa == 0);
+
+        foreach ($todasPartidas as $p) {
+            if (isset($p['is_wo']) && $p['is_wo'] == 1) continue;
+
+            $vencedor = $p['vencedor_id'];
+            $perdedor = ($p['vencedor_id'] == $p['atleta_a_id']) ? $p['atleta_b_id'] : $p['atleta_a_id'];
+
+            if (!$usarMotorCbtm) {
+                $addPontos($vencedor, $ptsVitoriaFixa);
+                $addPontos($perdedor, $ptsDerrotaFixa);
+            } else {
+                $view->fullRead("SELECT id, pontuacao_ranking FROM adms_users WHERE id IN ({$vencedor}, {$perdedor})");
+                $ptsRank = [];
+                foreach ($view->getResult() as $u) {
+                    $ptsRank[$u['id']] = (int)$u['pontuacao_ranking'];
+                }
+
+                $ratingVencedor = $ptsRank[$vencedor] ?? 0;
+                $ratingPerdedor = $ptsRank[$perdedor] ?? 0;
+                
+                $delta = abs($ratingVencedor - $ratingPerdedor);
+                $isVitoriaEsperada = ($ratingVencedor >= $ratingPerdedor);
+
+                $ptsAddVencedor = 0;
+                $ptsAddPerdedor = 0; 
+
+                if ($isVitoriaEsperada) {
+                    if ($delta >= 750) { $ptsAddVencedor = 1; $ptsAddPerdedor = 0; }
+                    elseif ($delta >= 500) { $ptsAddVencedor = 2; $ptsAddPerdedor = 0; }
+                    elseif ($delta >= 400) { $ptsAddVencedor = 3; $ptsAddPerdedor = 1; }
+                    elseif ($delta >= 300) { $ptsAddVencedor = 4; $ptsAddPerdedor = 2; }
+                    elseif ($delta >= 200) { $ptsAddVencedor = 5; $ptsAddPerdedor = 3; }
+                    elseif ($delta >= 150) { $ptsAddVencedor = 6; $ptsAddPerdedor = 4; }
+                    elseif ($delta >= 100) { $ptsAddVencedor = 7; $ptsAddPerdedor = 5; }
+                    elseif ($delta >= 50) { $ptsAddVencedor = 8; $ptsAddPerdedor = 6; }
+                    elseif ($delta >= 25) { $ptsAddVencedor = 9; $ptsAddPerdedor = 7; }
+                    else { $ptsAddVencedor = 10; $ptsAddPerdedor = 8; }
+                } else {
+                    if ($delta >= 500) { $ptsAddVencedor = 30; $ptsAddPerdedor = 22; }
+                    elseif ($delta >= 400) { $ptsAddVencedor = 26; $ptsAddPerdedor = 20; }
+                    elseif ($delta >= 300) { $ptsAddVencedor = 23; $ptsAddPerdedor = 18; }
+                    elseif ($delta >= 200) { $ptsAddVencedor = 20; $ptsAddPerdedor = 16; }
+                    elseif ($delta >= 150) { $ptsAddVencedor = 18; $ptsAddPerdedor = 14; }
+                    elseif ($delta >= 100) { $ptsAddVencedor = 16; $ptsAddPerdedor = 12; }
+                    elseif ($delta >= 50) { $ptsAddVencedor = 14; $ptsAddPerdedor = 11; }
+                    elseif ($delta >= 25) { $ptsAddVencedor = 12; $ptsAddPerdedor = 10; }
+                    else { $ptsAddVencedor = 11; $ptsAddPerdedor = 9; }
+                }
+
+                $ptsAddVencedor = (int) round($ptsAddVencedor * $pesoEvento);
+                $ptsAddPerdedor = (int) round($ptsAddPerdedor * $pesoEvento);
+
+                $addPontos($vencedor, $ptsAddVencedor);
+                $addPontos($perdedor, $ptsAddPerdedor);
+            }
+        }
+
+        if (!empty($rankingAtletas)) {
+            $up = new \App\adms\Models\helper\AdmsUpdate();
+            
+            foreach ($rankingAtletas as $userId => $pontosGanhos) {
+                if ($pontosGanhos > 0) {
+                    $view->fullRead("SELECT pontuacao_ranking FROM adms_users WHERE id=:id LIMIT 1", "id={$userId}");
+                    $pontosAtuais = $view->getResult()[0]['pontuacao_ranking'] ?? 0;
+                    
+                    $dataUpdate = [
+                        'pontuacao_ranking' => $pontosAtuais + $pontosGanhos,
+                        'modified' => date("Y-m-d H:i:s")
+                    ];
+                    $up->exeUpdate("adms_users", $dataUpdate, "WHERE id=:id", "id={$userId}");
+                }
+            }
+        }
+
+        $travaUpdate = new \App\adms\Models\helper\AdmsUpdate();
+        $travaUpdate->exeUpdate("adms_competicoes", ['ranking_processado' => 1], "WHERE id=:id", "id={$compId}");
+
+        $_SESSION['msg'] = "<p class='alert-success'>⭐ RANKING PROCESSADO COM SUCESSO! Todos os atletas receberam a sua pontuação (Baseada nas regras da CBTM).</p>";
     }
 }

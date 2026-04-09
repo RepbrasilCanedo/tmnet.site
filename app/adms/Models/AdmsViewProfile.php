@@ -47,7 +47,7 @@ class AdmsViewProfile
     {
             
             $viewUser = new \App\adms\Models\helper\AdmsRead();
-            $viewUser->fullRead("SELECT name, apelido, email, tel_1, tel_2, imagem 
+            $viewUser->fullRead("SELECT name, apelido, email, telefone, imagem 
                             FROM adms_users
                             WHERE id=:id
                             LIMIT :limit", "id=" . $_SESSION['user_id'] . "&limit=1");

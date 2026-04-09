@@ -70,14 +70,8 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 
                 <div class="view-det-adm">
                     <span class="view-adm-title">Telefone Principal: </span>
-                    <span class="view-adm-info"><?php echo $tel_1; ?></span>
+                    <span class="view-adm-info"><?php echo $telefone; ?></span>
                 </div>
-                <?php if ($_SESSION['adms_access_level_id'] <> 14) {?>
-                    <div class="view-det-adm">
-                    <span class="view-adm-title">Telefone Secundário: </span>
-                    <span class="view-adm-info"><?php echo $tel_2; ?></span>
-                </div>
-                <?php } ?>
 
 
                 

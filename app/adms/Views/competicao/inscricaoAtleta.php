@@ -82,7 +82,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                                             $checked = in_array($cat['id'], $arrayInscritas) ? 'checked' : '';
                                         ?>
                                             <label>
-                                                <input type="checkbox" name="categorias_selecionadas[]" value="<?= $cat['id'] ?>" <?= $checked ?> style="width: 16px; height: 16px;"> 
+                                                <input type="checkbox" name="categorias_selecionadas[]" value="<?= $cat['id'] ?>" <?= $checked ?> style="width: 16px; height: 16px;" onclick="verificarLimite(this)"> 
                                                 <?= $cat['nome'] ?>
                                             </label>
                                         <?php endforeach; ?>
@@ -121,3 +121,16 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 
     </div>
 </div>
+
+<script>
+    // DOCAN JS: Conta as checkboxes dentro do card (form) e bloqueia a 3ª seleção
+    function verificarLimite(checkbox) {
+        const form = checkbox.closest('form');
+        const marcados = form.querySelectorAll('input[type="checkbox"]:checked').length;
+        
+        if (marcados > 2) {
+            checkbox.checked = false; // Desmarca instantaneamente
+            alert('Regulamento CBTM: O limite máximo é de 2 inscrições por torneio!');
+        }
+    }
+</script>

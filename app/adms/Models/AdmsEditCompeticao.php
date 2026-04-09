@@ -18,7 +18,6 @@ class AdmsEditCompeticao
     public function viewCompeticao(int $id): void
     {
         $view = new \App\adms\Models\helper\AdmsRead();
-        // Garante que só edita torneios da própria empresa/clube
         $view->fullRead("SELECT * FROM adms_competicoes WHERE id=:id AND empresa_id=:empresa LIMIT 1", "id={$id}&empresa={$_SESSION['emp_user']}");
         $this->result = $view->getResult();
     }
@@ -35,11 +34,16 @@ class AdmsEditCompeticao
         $id = (int)$dados['id'];
         unset($dados['id'], $dados['SendEditComp']);
 
-        // Transforma o array de checkboxes numa string separada por vírgulas (ex: "1,4,5")
         if (isset($dados['categorias_selecionadas'])) {
             $dados['categorias_selecionadas'] = implode(',', $dados['categorias_selecionadas']);
         } else {
             $dados['categorias_selecionadas'] = null;
+        }
+
+        // DOCAN FIX: Força os campos de pontuação vazios a virarem ZERO na edição.
+        $camposPontuacao = ['pts_campeao', 'pts_vice', 'pts_terceiro', 'pts_quartas', 'pts_vitoria_jogo', 'pts_derrota_jogo', 'pts_participacao'];
+        foreach($camposPontuacao as $cp){
+            $dados[$cp] = empty($dados[$cp]) ? 0 : (int)$dados[$cp];
         }
 
         $dados['modified'] = date("Y-m-d H:i:s");

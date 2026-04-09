@@ -52,7 +52,7 @@ class AdmsViewUsers
         $this->id = $id;
 
         $viewUser = new \App\adms\Models\helper\AdmsRead();
-        $viewUser->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.data_nascimento, usr.email, usr.tel_1, usr.tel_2, 
+        $viewUser->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.data_nascimento, usr.email, usr.telefone, 
                             usr.user, usr.imagem, usr.created, usr.modified, sit.name AS name_sit, col.color, lev.id AS id_lev, lev.name AS name_lev, 
                             emp.nome_fantasia as nome_fantasia_emp, emp.razao_social as razao_social_emp
                             FROM adms_users AS usr

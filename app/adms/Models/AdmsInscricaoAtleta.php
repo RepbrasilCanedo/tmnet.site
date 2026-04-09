@@ -19,11 +19,9 @@ class AdmsInscricaoAtleta
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
-        // 1. Busca os dados do Atleta
         $read->fullRead("SELECT data_nascimento, pontuacao_ranking FROM adms_users WHERE id = :id LIMIT 1", "id={$userId}");
         $atleta = $read->getResult()[0] ?? null;
 
-        // 2. Busca os torneios ativos
         $read->fullRead(
             "SELECT id, nome_torneio, data_evento, local_evento, categoria_cbtm, fator_multiplicador, categorias_selecionadas
              FROM adms_competicoes
@@ -34,7 +32,6 @@ class AdmsInscricaoAtleta
         
         $torneios = $read->getResult() ?: [];
 
-        // 3. Busca TODAS as categorias que este atleta já se inscreveu
         $read->fullRead(
             "SELECT adms_competicao_id, adms_categoria_id 
              FROM adms_inscricoes 
@@ -43,7 +40,6 @@ class AdmsInscricaoAtleta
         );
         $minhasInscricoes = $read->getResult() ?: [];
 
-        // Agrupa as inscrições do atleta por torneio
         $inscricoesPorTorneio = [];
         foreach ($minhasInscricoes as $insc) {
             $compId = $insc['adms_competicao_id'];
@@ -53,13 +49,11 @@ class AdmsInscricaoAtleta
             $inscricoesPorTorneio[$compId][] = $insc['adms_categoria_id'];
         }
 
-        // 4. Busca todas as categorias do clube para avaliar
         $read->fullRead("SELECT id, nome, idade_minima, idade_maxima, pontuacao_maxima FROM adms_categorias WHERE empresa_id = :empresa", "empresa={$_SESSION['emp_user']}");
         $todasCategorias = $read->getResult() ?: [];
 
         $ratingAtleta = (float)($atleta['pontuacao_ranking'] ?? 0);
 
-        // 5. MOTOR INTELIGENTE: Avalia torneio a torneio o que ele pode jogar
         foreach ($torneios as $key => $t) {
             
             $torneios[$key]['categorias_inscritas'] = isset($inscricoesPorTorneio[$t['id']]) ? implode(',', $inscricoesPorTorneio[$t['id']]) : '';
@@ -78,12 +72,10 @@ class AdmsInscricaoAtleta
                 if (in_array((string)$cat['id'], $catIdsTorneio)) {
                     $apto = true;
 
-                    // Tratamento à prova de bala para ignorar "0", null ou vazio no Banco de Dados
                     $idadeMin = (is_numeric($cat['idade_minima']) && $cat['idade_minima'] > 0) ? (int)$cat['idade_minima'] : null;
                     $idadeMax = (is_numeric($cat['idade_maxima']) && $cat['idade_maxima'] > 0) ? (int)$cat['idade_maxima'] : null;
                     $ratingMax = (is_numeric($cat['pontuacao_maxima']) && $cat['pontuacao_maxima'] > 0) ? (float)$cat['pontuacao_maxima'] : null;
 
-                    // Bloqueios
                     if ($idadeMin !== null && $idadeAtleta < $idadeMin) $apto = false;
                     if ($idadeMax !== null && $idadeAtleta > $idadeMax) $apto = false;
                     if ($ratingMax !== null && $ratingAtleta > $ratingMax) $apto = false;
@@ -110,6 +102,15 @@ class AdmsInscricaoAtleta
             return;
         }
 
+        // ==============================================================
+        // DOCAN FIX: TRAVA BACK-END DE LIMITE DE INSCRIÇÕES (MÁX: 2)
+        // ==============================================================
+        if (count($dados['categorias_selecionadas']) > 2) {
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro de Regulamento: O limite é de apenas 2 categorias por torneio!</p>";
+            $this->result = false;
+            return;
+        }
+
         $read = new \App\adms\Models\helper\AdmsRead();
         $read->fullRead("SELECT id, data_evento, status_inscricao FROM adms_competicoes WHERE id = :id LIMIT 1", "id={$compId}");
         $compInfo = $read->getResult()[0] ?? null;
@@ -120,9 +121,6 @@ class AdmsInscricaoAtleta
             return;
         }
 
-        // ==============================================================
-        // TRAVA DE SEGURANÇA BACK-END
-        // ==============================================================
         $read->fullRead("SELECT data_nascimento, pontuacao_ranking FROM adms_users WHERE id = :id LIMIT 1", "id={$userId}");
         $atleta = $read->getResult()[0];
 
@@ -139,8 +137,6 @@ class AdmsInscricaoAtleta
         $categoriasMarcadas = $read->getResult() ?: [];
         
         foreach ($categoriasMarcadas as $cat) {
-            
-            // Tratamento à prova de bala
             $idadeMin = (is_numeric($cat['idade_minima']) && $cat['idade_minima'] > 0) ? (int)$cat['idade_minima'] : null;
             $idadeMax = (is_numeric($cat['idade_maxima']) && $cat['idade_maxima'] > 0) ? (int)$cat['idade_maxima'] : null;
             $ratingMax = (is_numeric($cat['pontuacao_maxima']) && $cat['pontuacao_maxima'] > 0) ? (float)$cat['pontuacao_maxima'] : null;

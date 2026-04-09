@@ -93,6 +93,10 @@ if (isset($this->data['form'])) {
                             <option value="Semiclassista" <?= ($estilo_jogo == "Semiclassista") ? "selected" : "" ?>>Semiclassista</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="row-input">
+                    
                     
                     <div class="column">
                         <label class="title-input">Mão Dominante</label>
@@ -101,10 +105,8 @@ if (isset($this->data['form'])) {
                             <option value="Destro" <?= ($mao_dominante == "Destro") ? "selected" : "" ?>>Destro</option>
                             <option value="Canhoto" <?= ($mao_dominante == "Canhoto") ? "selected" : "" ?>>Canhoto</option>
                         </select>
-                    </div>
-                </div>
+                    </div> 
 
-                <div class="row-input">
                     <div class="column">
                         <?php $email = $valorForm['email'] ?? ""; ?>
                         <label class="title-input">E-mail:<span class="text-danger">*</span></label>
@@ -112,15 +114,9 @@ if (isset($this->data['form'])) {
                     </div>
 
                     <div class="column">
-                        <?php $tel_1 = $valorForm['tel_1'] ?? ""; ?>
-                        <label class="title-input">Telefone Principal: <span class="text-danger">*</span></label>
-                        <input type="text" name="tel_1" id="tel_1" class="input-adm" maxlength="15" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)" value="<?= trim($tel_1); ?>" required>
-                    </div>
-
-                    <div class="column">
-                        <?php $tel_2 = $valorForm['tel_2'] ?? ""; ?>
-                        <label class="title-input">Telefone Secundário: <span class="text-danger">*</span></label>
-                        <input type="text" name="tel_2" id="tel_2" class="input-adm" maxlength="15" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)" value="<?= trim($tel_2); ?>" required>
+                        <?php $telefone = $valorForm['telefone'] ?? ""; ?>
+                        <label class="title-input">Telefone/WhatsApp: <span class="text-danger">*</span></label>
+                        <input type="text" name="telefone" id="telefone" class="input-adm" maxlength="15" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)" value="<?= trim($telefone); ?>" required>
                     </div>
                 </div>
 

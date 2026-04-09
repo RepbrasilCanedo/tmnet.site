@@ -46,8 +46,11 @@ $valorForm = $this->data['form'] ?? [];
             </form>
 
             <div class="link-novo-login">
-                <a href="<?php echo URLADM; ?>recover-password/index">Esqueci a Senha</a>
+                <a href="<?php echo URLADM; ?>recover-password/index">Esqueci a Senha </a>
             </div> 
+            <div class="link-novo-login">
+                <a href="<?= URLADM ?>novo-credenciamento/index"> Quero ser um Atleta!</a>
+            </div>
             
             <div class="login-footer">
                 <small>&copy; <?php echo date('Y'); ?> Rep Brasil Tecnologia</small>

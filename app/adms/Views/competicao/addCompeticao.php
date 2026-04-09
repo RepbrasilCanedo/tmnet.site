@@ -103,6 +103,47 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                     </div>
                 </div>
 
+                <div style="background: #fdf5e6; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 20px; margin-top: 10px;">
+                    <label class="title-input" style="color: #856404; font-size: 18px; margin-bottom: 5px;">🏆 Pontuação para o Ranking Geral</label>
+                    <p style="font-size: 13px; color: #666; margin-top: 0; margin-bottom: 15px;">Configure os pontos que este torneio distribuirá. <br><i>Se deixar tudo Zerado, o torneio será considerado "Amistoso" e não valerá pontos para o ranking.</i></p>
+                    
+                    <div class="row-input">
+                        <div class="column">
+                            <label class="title-input" style="color: #d4af37;">🥇 Campeão (1º)</label>
+                            <input type="number" name="pts_campeao" class="input-adm" placeholder="Ex: 300" value="0">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #a9a9a9;">🥈 Vice (2º)</label>
+                            <input type="number" name="pts_vice" class="input-adm" placeholder="Ex: 150" value="0">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #cd7f32;">🥉 Terceiros (Semi)</label>
+                            <input type="number" name="pts_terceiro" class="input-adm" placeholder="Ex: 100" value="0">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #555;">🏅 5º ao 8º (Quartas)</label>
+                            <input type="number" name="pts_quartas" class="input-adm" placeholder="Ex: 50" value="0">
+                        </div>
+                    </div>
+                    
+                    <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
+                    
+                    <div class="row-input">
+                        <div class="column">
+                            <label class="title-input" style="color: #17a2b8;">🤝 Pts por Participação</label>
+                            <input type="number" name="pts_participacao" class="input-adm" placeholder="Ex: 50" value="0">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #28a745;">✅ Pts por Vitória (Fixa)</label>
+                            <input type="number" name="pts_vitoria_jogo" class="input-adm" placeholder="Ex: 10" value="0">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #dc3545;">❌ Pts por Derrota (Fixa)</label>
+                            <input type="number" name="pts_derrota_jogo" class="input-adm" placeholder="Ex: 5" value="0">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row-input">
                     <div class="column">
                         <label class="title-input">Observações do Torneio</label>

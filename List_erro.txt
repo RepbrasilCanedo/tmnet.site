@@ -5,3 +5,11 @@
 005 - ConfigView.php - Erro ao carregar a VIEW Login
 006 - CarregarPgAdmLevel.php - Erro nao encontrou a pagina no BD
 007 - CarregarPgAdmLevel.php - Erro carregar a metodo
+
+
+Chave reCAPCHA:
+Use esta chave de site no código HTML que seu site fornece aos usuários.
+6LckDq0sAAAAADjSgFKX_9FFnEGbIqJVW8ncKBAm
+
+Use esta chave secreta para comunicação entre seu site e o reCAPTCHA
+6LckDq0sAAAAAG7vfCcNmoK4qcFroB2lDbdRiZb9

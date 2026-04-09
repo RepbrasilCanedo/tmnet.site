@@ -1,5 +1,4 @@
 <?php
-
 if (!defined('D0O8C0A3N1E9D6O1')) {
     header("Location: /");
     die("Erro: Página não encontrada<br>");
@@ -13,7 +12,6 @@ if (isset($this->data['form'][0])) {
     $valorForm = $this->data['form'][0];
 }
 ?>
-<!-- Inicio do conteudo do administrativo -->
 <div class="dash-wrapper">
     <div class="row">
         <div class="top-list">
@@ -21,13 +19,13 @@ if (isset($this->data['form'][0])) {
             <div class="top-list-right">
                 <?php
                 if ($this->data['button']['view_profile']) {
-                    echo "<a href='" . URLADM . "view-profile/index' class='btn-primary'>Perfil</a> ";
+                    echo "<a href='" . URLADM . "view-profile/index' class='btn-primary'>Voltar ao Perfil</a> ";
                 }
                 ?>
             </div>
         </div>
 
-        <div class="content-adm">
+        <div class="content-adm-alert">
             <?php
             if (isset($_SESSION['msg'])) {
                 echo $_SESSION['msg'];
@@ -37,7 +35,7 @@ if (isset($this->data['form'][0])) {
             <span id="msg"></span>
         </div>
 
-        <div class="content-adm-alert">
+        <div class="content-adm">
             <form method="POST" action="" id="form-edit-profile" class="form-adm">
 
                 <div class="row-input">
@@ -73,7 +71,6 @@ if (isset($this->data['form'][0])) {
                         ?>
                         <label class="title-input">E-mail:<span class="text-danger">*</span></label>
                         <input type="email" name="email" id="email" class="input-adm" placeholder="Digite o seu melhor e-mail" value="<?php echo $email; ?>" required>
-
                     </div>
                     <div class="column">
                         <?php
@@ -82,43 +79,45 @@ if (isset($this->data['form'][0])) {
                             $user = $valorForm['user'];
                         }
                         ?>
-                        <label class="title-input">Usuário:<span class="text-danger">*</span></label>
-                        <input type="text" name="user" id="user" class="input-adm" placeholder="Digite o usuário para acessar o administrativo" value="<?php echo $user; ?>" required>
-
+                        <label class="title-input">Usuário (Acesso):<span class="text-danger">*</span></label>
+                        <input type="text" name="user" id="user" class="input-adm" placeholder="Digite o usuário para acessar o sistema" value="<?php echo $user; ?>" required>
                     </div>
                 </div>
 
                 <div class="row-input">
                     <div class="column">
                         <?php
-                        $tel_1 = "";
-                        if (isset($valorForm['tel_1'])) {
-                            $tel_1 = $valorForm['tel_1'];
+                        $telefone = "";
+                        if (isset($valorForm['telefone'])) {
+                            $telefone = trim($valorForm['telefone']); // Remove os espaços sobrando
                         }
                         ?>
-                        <label class="title-input">Telefone Principal: <span class="text-danger">*</span></label>
-                        <input type="text" name="tel_1" id="tel_1" class="input-adm" placeholder="Digite o telefone principal" value="<?php echo $tel_1; ?> " required>
+                        <label class="title-input">Tel/WhatsApp: <span class="text-danger">*</span></label>
+                        <input type="text" name="telefone" id="telefone" class="input-adm" maxlength="15" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)" value="<?php echo $telefone; ?>" required>
                     </div>
-                    <?php if ($_SESSION['adms_access_level_id'] <> 14) { ?>
-                    <div class="column">
-                        <?php
-                        $tel_2 = "";
-                        if (isset($valorForm['tel_2'])) {
-                            $tel_2 = $valorForm['tel_2'];
-                        }
-                        ?>
-                        <label class="title-input">Telefone Secundário: <span class="text-danger">*</span></label>
-                        <input type="text" name="tel_2" id="tel_2" class="input-adm" placeholder="Digite o telefone" value="<?php echo $tel_2; ?>" required>
-                    </div>
-                    <?php } ?>
                 </div>
 
-                <p class="text-danger mb-5 fs-4">* Campo Obrigatório</p>
+                <p class="text-danger mb-5 fs-4" style="margin-top: 15px;">* Campo Obrigatório</p>
 
-                <button type="submit" name="SendEditProfile" class="btn-warning" value="Salvar">Salvar</button>
+                <button type="submit" name="SendEditProfile" class="btn-warning" value="Salvar" style="margin-top: 10px; width: 100%; max-width: 200px;">💾 Salvar Alterações</button>
 
             </form>
         </div>
     </div>
 </div>
-<!-- Fim do conteudo do administrativo -->
+
+<script>
+    // DOCAN FIX: Máscara para manter o telefone formatado bonitinho!
+    function mascaraTelefone(t) {
+        let v = t.value;
+        v = v.replace(/\D/g, ""); // Remove tudo o que não é dígito
+        v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); // Coloca parênteses em volta dos dois primeiros dígitos
+        
+        if (v.length > 13) {
+            v = v.replace(/(\d{5})(\d)/, "$1-$2"); // Número de telemóvel
+        } else {
+            v = v.replace(/(\d{4})(\d)/, "$1-$2"); // Número fixo
+        }
+        t.value = v;
+    }
+</script>

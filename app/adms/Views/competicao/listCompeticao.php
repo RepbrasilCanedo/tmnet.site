@@ -14,13 +14,26 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     .badge-torn-concluido { background-color: #0044cc; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { box-shadow: 0 0 0 5px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
+
+    /* DOCAN FIX: Estilos Responsivos para Mobile */
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; margin-bottom: 15px; border-radius: 8px; }
+    .top-list-right-actions { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 768px) {
+        .list-table th, .list-table td { font-size: 12px; padding: 10px 5px; }
+        .top-list { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .top-list-right-actions { width: 100%; justify-content: flex-start; flex-direction: column; align-items: stretch; }
+        .top-list-right-actions form { width: 100%; display: flex; }
+        .top-list-right-actions form input { flex: 1; width: auto !important; }
+        .top-list-right-actions .btn-success { text-align: center; }
+    }
 </style>
 
 <div class="dash-wrapper">
-    <div class="row"><div class="top-list">
+    <div class="row">
+        <div class="top-list">
             <span class="title-content">Gestão de Torneios - TMNet</span>
             
-            <div class="top-list-right" style="display: flex; align-items: center; gap: 15px;">
+            <div class="top-list-right-actions">
                 <form method="POST" action="" style="display: flex; gap: 5px; margin: 0;">
                     <input type="text" name="search_nome" class="input-adm" placeholder="Pesquisar torneio..." 
                            value="<?= $this->data['form']['search_nome'] ?? '' ?>" 
@@ -41,59 +54,60 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
             ?>
         </div>
 
-        <table class="list-table">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Torneio / Categoria</th>
-                    <th>Local</th>
-                    <th style="text-align: center;">Inscrições</th>
-                    <th style="text-align: center;">Status do Torneio</th>
-                    <th style="text-align: center;">Peso</th>
-                    <th style="text-align: center;">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                if (!empty($this->data['listComp'])) {
-                    foreach ($this->data['listComp'] as $comp) {
-                        extract($comp);
-                        
-                        // Configurações das Etiquetas Visuais
-                        $badgeInsc = ($status_inscricao == 1) ? "<span class='badge-insc-aberta'>Abertas</span>" : "<span class='badge-insc-fechada'>Encerradas</span>";
-                        
-                        $badgeTorn = "";
-                        if ($status_torneio == 'Aguardando') $badgeTorn = "<span class='badge-torn-aguardando'>Aguardando Jogos</span>";
-                        elseif ($status_torneio == 'Em Andamento') $badgeTorn = "<span class='badge-torn-andamento'>Em Andamento</span>";
-                        elseif ($status_torneio == 'Concluído') $badgeTorn = "<span class='badge-torn-concluido'>🏆 Concluído</span>";
-                        ?>
-                        <tr>
-                            <td><?= date('d/m/Y', strtotime($data_evento)) ?></td>
-                            <td>
-                                <strong><?= $nome_torneio ?></strong><br>
-                                <small style="color: #0044cc;"><?= $categoria_cbtm ?></small>
-                            </td>
-                            <td><?= $local_evento ?></td>
+        <div class="table-responsive">
+            <table class="list-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Torneio / Categoria</th>
+                        <th>Local</th>
+                        <th style="text-align: center;">Inscrições</th>
+                        <th style="text-align: center;">Status do Torneio</th>
+                        <th style="text-align: center;">Peso</th>
+                        <th style="text-align: center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if (!empty($this->data['listComp'])) {
+                        foreach ($this->data['listComp'] as $comp) {
+                            extract($comp);
                             
-                            <td style="text-align: center;"><?= $badgeInsc ?></td>
-                            <td style="text-align: center;"><?= $badgeTorn ?></td>
+                            $badgeInsc = ($status_inscricao == 1) ? "<span class='badge-insc-aberta'>Abertas</span>" : "<span class='badge-insc-fechada'>Encerradas</span>";
                             
-                            <td style="text-align: center;">
-                                <span class="badge-ranking" style="background-color: #eee; color: #333; padding: 2px 8px; border-radius: 4px;">
-                                    x<?= number_format($fator_multiplicador, 2) ?>
-                                </span>
-                            </td>
-                            <td style="text-align: center;">
-                                <a href="<?= URLADM ?>view-competicao/index/<?= $id ?>" class="btn-info" style="background-color: #0044cc; color: white;">Acessar Súmula</a>
-                            </td>
-                        </tr>
-                        <?php
+                            $badgeTorn = "";
+                            if ($status_torneio == 'Aguardando') $badgeTorn = "<span class='badge-torn-aguardando'>Aguardando Jogos</span>";
+                            elseif ($status_torneio == 'Em Andamento') $badgeTorn = "<span class='badge-torn-andamento'>Em Andamento</span>";
+                            elseif ($status_torneio == 'Concluído') $badgeTorn = "<span class='badge-torn-concluido'>🏆 Concluído</span>";
+                            ?>
+                            <tr>
+                                <td><?= date('d/m/Y', strtotime($data_evento)) ?></td>
+                                <td>
+                                    <strong><?= $nome_torneio ?></strong><br>
+                                    <small style="color: #0044cc;"><?= $categoria_cbtm ?></small>
+                                </td>
+                                <td><?= $local_evento ?></td>
+                                
+                                <td style="text-align: center;"><?= $badgeInsc ?></td>
+                                <td style="text-align: center;"><?= $badgeTorn ?></td>
+                                
+                                <td style="text-align: center;">
+                                    <span class="badge-ranking" style="background-color: #eee; color: #333; padding: 2px 8px; border-radius: 4px;">
+                                        x<?= number_format($fator_multiplicador, 2) ?>
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <a href="<?= URLADM ?>view-competicao/index/<?= $id ?>" class="btn-info" style="background-color: #0044cc; color: white;">Acessar Súmula</a>
+                                </td>
+                            </tr>
+                            <?php
+                        }
+                    } else {
+                        echo "<tr><td colspan='7' style='color: #f00; text-align: center;'>Nenhuma competição agendada para sua empresa!</td></tr>";
                     }
-                } else {
-                    echo "<tr><td colspan='7' style='color: #f00; text-align: center;'>Nenhuma competição agendada para sua empresa!</td></tr>";
-                }
-                ?>
-            </tbody>
-        </table>
+                    ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

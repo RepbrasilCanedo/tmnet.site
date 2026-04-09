@@ -17,9 +17,6 @@ class AdmsAddCompeticao
         return $this->result; 
     }
 
-    // ========================================================================
-    // BUSCA AS CATEGORIAS DO CLUBE PARA MOSTRAR NA TELA DE CRIAÇÃO
-    // ========================================================================
     public function getCategoriasClube(): array|null
     {
         $list = new \App\adms\Models\helper\AdmsRead();
@@ -38,28 +35,23 @@ class AdmsAddCompeticao
             unset($this->data['AdmsAddComp']);
         }
 
-        // Separa o array de checkboxes antes de limpar os textos
         $categoriasIds = $this->data['categorias_ids'] ?? [];
         unset($this->data['categorias_ids']);
 
-        // 1. Limpeza de dados (Apenas para strings)
         foreach ($this->data as $key => $value) {
             if (is_string($value)) {
                 $this->data[$key] = trim(strip_tags($value));
             }
         }
 
-        // 2. Validação de campos obrigatórios
         if (!empty($this->data['nome_torneio']) && !empty($this->data['data_evento'])) {
             
-            // Grava os IDs das categorias separadas por vírgula (ex: "1,4,5")
             if (!empty($categoriasIds)) {
                 $this->data['categorias_selecionadas'] = implode(',', $categoriasIds);
             } else {
                 $this->data['categorias_selecionadas'] = null;
             }
 
-            // 3. REGRA MULTIEMPRESA
             $this->data['empresa_id'] = $_SESSION['emp_user'];
             $this->data['created'] = date("Y-m-d H:i:s");
             
@@ -70,10 +62,15 @@ class AdmsAddCompeticao
             }
 
             if(!isset($this->data['status_inscricao'])){
-                $this->data['status_inscricao'] = 1; // Inscrições Abertas
+                $this->data['status_inscricao'] = 1; 
+            }
+            
+            // DOCAN FIX: Força os campos de pontuação vazios a virarem ZERO.
+            $camposPontuacao = ['pts_campeao', 'pts_vice', 'pts_terceiro', 'pts_quartas', 'pts_vitoria_jogo', 'pts_derrota_jogo', 'pts_participacao'];
+            foreach($camposPontuacao as $cp){
+                $this->data[$cp] = empty($this->data[$cp]) ? 0 : (int)$this->data[$cp];
             }
 
-            // 5. Executa a inserção
             $createComp = new \App\adms\Models\helper\AdmsCreate();
             $createComp->exeCreate("adms_competicoes", $this->data);
 
