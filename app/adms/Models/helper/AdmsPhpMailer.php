@@ -14,10 +14,16 @@ class AdmsPhpMailer
 {
     private bool $result = false;
     private array $data;
+    private string $errorMsg = '';
 
     function getResult(): bool
     {
         return $this->result;
+    }
+
+    function getErrorMsg(): string
+    {
+        return $this->errorMsg;
     }
 
     public function sendEmail(array $data): void
@@ -27,19 +33,31 @@ class AdmsPhpMailer
         try {
             $mail = new PHPMailer(true);
             
-            // Modo silencioso ativado (0) - Sem letras verdes na tela!
+            // Modo silencioso ativado (0)
             $mail->SMTPDebug = 0; 
 
             $mail->CharSet = 'UTF-8';
             $mail->isSMTP();                                            
-            $mail->Host       = EMAIL_HOST;       
-            $mail->SMTPAuth   = true;                                   
-            $mail->Username   = EMAIL_USER;       
-            $mail->Password   = EMAIL_PASS;       
-            $mail->SMTPSecure = 'ssl';           
-            $mail->Port       = EMAIL_PORT;       
+            
+            // ========================================================================
+            // DOCAN ENGINE: CONFIGURAÇÃO DIRETA DO GMAIL (PLANO B)
+            // ========================================================================
+            $mail->Host       = 'smtp.gmail.com';       // Servidor do Google
+            $mail->SMTPAuth   = true;                                 
+            
+            // 🔴 ATENÇÃO: COLOQUE AQUI O SEU E-MAIL DO GMAIL QUE GEROU A SENHA DE APP
+            $mail->Username   = 'm33canedo@gmail.com'; 
+            
+            // Senha de App que você gerou (Sem espaços!)
+            $mail->Password   = 'zdmabhotibhbafrj';       
+            
+            $mail->SMTPSecure = 'ssl'; // Encriptação SSL
+            $mail->Port       = 465;   // Porta padrão do SSL do Google
 
-            $mail->setFrom(EMAIL_USER, EMAIL_FROM_NAME); 
+            // Quem está enviando (Pode ser o mesmo e-mail do Username)
+            $mail->setFrom('m33canedo@gmail.com', 'Sistema TMNet'); 
+            // ========================================================================
+
             $mail->addAddress($this->data['toEmail'], $this->data['toName']); 
 
             $mail->isHTML(true);                                  
@@ -51,8 +69,9 @@ class AdmsPhpMailer
             $this->result = true;
             
         } catch (\Throwable $e) {
-            // Em vez de quebrar a tela, agora ele apenas diz à Controller que falhou
             $this->result = false;
+            // Guarda o erro real caso o Gmail recuse a conexão por algum motivo
+            $this->errorMsg = $mail->ErrorInfo;
         }
     }
 }

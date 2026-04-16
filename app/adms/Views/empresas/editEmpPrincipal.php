@@ -131,13 +131,13 @@ if (isset($this->data['form'][0])) {
 
                     <div class="column">
                         <?php
-                        $uf = "";
-                        if (isset($valorForm['uf'])) {
-                            $uf = $valorForm['uf'];
+                        $estado = "";
+                        if (isset($valorForm['estado'])) {
+                            $estado = $valorForm['estado'];
                         }
                         ?>
                         <label class="title-input">Uf<span class="text-danger">*</span></label>
-                        <input type="text" name="uf" id="uf" class="input-adm" placeholder="Uf da empresa..." value="<?php echo $uf; ?>" required>
+                        <input type="text" name="estado" id="estado" class="input-adm" placeholder="Uf da empresa..." value="<?php echo $estado; ?>" required>
                     </div>
                     <div class="column">
                         <?php

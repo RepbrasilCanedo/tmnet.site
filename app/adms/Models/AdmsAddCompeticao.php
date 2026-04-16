@@ -65,10 +65,17 @@ class AdmsAddCompeticao
                 $this->data['status_inscricao'] = 1; 
             }
             
-            // DOCAN FIX: Força os campos de pontuação vazios a virarem ZERO.
             $camposPontuacao = ['pts_campeao', 'pts_vice', 'pts_terceiro', 'pts_quartas', 'pts_vitoria_jogo', 'pts_derrota_jogo', 'pts_participacao'];
             foreach($camposPontuacao as $cp){
                 $this->data[$cp] = empty($this->data[$cp]) ? 0 : (int)$this->data[$cp];
+            }
+
+            // DOCAN FIX: Tratamento dos Valores Financeiros (Substitui vírgula por ponto para o SQL aceitar)
+            if(!empty($this->data['valor_uma_categoria'])) {
+                $this->data['valor_uma_categoria'] = str_replace(',', '.', $this->data['valor_uma_categoria']);
+            }
+            if(!empty($this->data['valor_duas_categorias'])) {
+                $this->data['valor_duas_categorias'] = str_replace(',', '.', $this->data['valor_duas_categorias']);
             }
 
             $createComp = new \App\adms\Models\helper\AdmsCreate();

@@ -21,14 +21,11 @@ class NovoCredenciamento
             $credenciamento->criarCadastro($this->data['form']);
             
             if ($credenciamento->getResult()) {
-                // Se deu sucesso, redireciona para o Login para o atleta ver a mensagem verde
+                // Redireciona para o Login para o atleta ver a mensagem verde
                 header("Location: " . URLADM . "login/index");
                 exit;
             }
         }
-
-        // Busca a lista de clubes para o Dropdown
-        $this->data['clubes'] = $credenciamento->listarClubes();
 
         // Carrega a View da página de Credenciamento
         $loadView = new \Core\ConfigView("adms/Views/login/novoCredenciamento", $this->data);

@@ -51,6 +51,9 @@ $valorForm = $this->data['form'] ?? [];
             <div class="link-novo-login">
                 <a href="<?= URLADM ?>novo-credenciamento/index"> Quero ser um Atleta!</a>
             </div>
+            <div class="link-novo-login">
+                <a href="<?= URLADM ?>novo-clube/index">Quer organizar torneios? Cadastre seu Clube!</a>
+            </div>
             
             <div class="login-footer">
                 <small>&copy; <?php echo date('Y'); ?> Rep Brasil Tecnologia</small>

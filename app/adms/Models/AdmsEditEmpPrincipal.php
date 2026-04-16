@@ -56,7 +56,7 @@ class AdmsEditEmpPrincipal
 
         $viewEmpresas = new \App\adms\Models\helper\AdmsRead();
         $viewEmpresas->fullRead("SELECT emp.id, emp.razao_social, emp.nome_fantasia, emp.cnpj, emp.cep, emp.logradouro, emp.bairro, 
-                            emp.cidade, emp.uf, emp.contato, emp.telefone, emp.email, sit.name as situacao, emp.logo
+                            emp.cidade, emp.estado, emp.contato, emp.telefone, emp.email, sit.name as situacao, emp.logo
                             FROM adms_emp_principal as emp
                             INNER JOIN adms_sits_empr_unid AS sit ON sit.id=emp.situacao 
                             WHERE emp.id=:id LIMIT :limit", "id={$this->id}&limit=1");

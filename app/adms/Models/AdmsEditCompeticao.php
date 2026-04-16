@@ -40,10 +40,18 @@ class AdmsEditCompeticao
             $dados['categorias_selecionadas'] = null;
         }
 
-        // DOCAN FIX: Força os campos de pontuação vazios a virarem ZERO na edição.
+        // Força os campos de pontuação vazios a virarem ZERO na edição.
         $camposPontuacao = ['pts_campeao', 'pts_vice', 'pts_terceiro', 'pts_quartas', 'pts_vitoria_jogo', 'pts_derrota_jogo', 'pts_participacao'];
         foreach($camposPontuacao as $cp){
             $dados[$cp] = empty($dados[$cp]) ? 0 : (int)$dados[$cp];
+        }
+
+        // DOCAN FIX: Tratamento dos Valores Financeiros (Substitui vírgula por ponto para o SQL)
+        if(isset($dados['valor_uma_categoria'])) {
+            $dados['valor_uma_categoria'] = empty($dados['valor_uma_categoria']) ? 0.00 : str_replace(',', '.', $dados['valor_uma_categoria']);
+        }
+        if(isset($dados['valor_duas_categorias'])) {
+            $dados['valor_duas_categorias'] = empty($dados['valor_duas_categorias']) ? 0.00 : str_replace(',', '.', $dados['valor_duas_categorias']);
         }
 
         $dados['modified'] = date("Y-m-d H:i:s");

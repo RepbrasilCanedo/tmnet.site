@@ -16,30 +16,78 @@ class AdmsRankingGeral
     public function listarRanking(array|null $search = null): void
     {
         $listar = new \App\adms\Models\helper\AdmsRead();
-        $empresaId = $_SESSION['emp_user'];
+        $empresaId = (int)$_SESSION['emp_user'];
+        $nivelLogado = (int)$_SESSION['adms_access_level_id'];
 
-        // 1. Busca todas as CATEGORIAS do Clube
-        $listar->fullRead("SELECT id, nome, idade_minima, idade_maxima, pontuacao_maxima FROM adms_categorias WHERE empresa_id = :empresa ORDER BY pontuacao_maxima DESC, nome ASC", "empresa={$empresaId}");
+        // 1. Busca todas as CATEGORIAS
+        // Se for S-Admin, busca todas as categorias da plataforma. Se for Clube, busca as suas.
+        if ($nivelLogado <= 2) {
+            $listar->fullRead("SELECT id, nome, idade_minima, idade_maxima, pontuacao_maxima FROM adms_categorias ORDER BY pontuacao_maxima DESC, nome ASC");
+        } else {
+            $listar->fullRead("SELECT id, nome, idade_minima, idade_maxima, pontuacao_maxima FROM adms_categorias WHERE empresa_id = :empresa ORDER BY pontuacao_maxima DESC, nome ASC", "empresa={$empresaId}");
+        }
         $categorias = $listar->getResult() ?: [];
 
-        // 2. Busca todos os atletas (AGORA COM MÃO DOMINANTE)
-        if (!empty($search['search_nome'])) {
-            $listar->fullRead(
-                "SELECT id, name AS nome, apelido, imagem, estilo_jogo, mao_dominante, pontuacao_ranking, genero, data_nascimento 
-                 FROM adms_users 
-                 WHERE adms_access_level_id = 14 AND empresa_id = :empresa 
-                 AND (name LIKE :search OR apelido LIKE :search)
-                 ORDER BY pontuacao_ranking DESC", 
-                "empresa={$empresaId}&search=%{$search['search_nome']}%"
-            );
+        // 2. Busca todos os atletas (LÓGICA DE VISIBILIDADE)
+        $termoBusca = !empty($search['search_nome']) ? "%{$search['search_nome']}%" : null;
+
+        if ($nivelLogado <= 2) {
+            // =========================================================
+            // VISÃO DA PLATAFORMA (S-ADMIN) - Ranking Global
+            // =========================================================
+            if ($termoBusca) {
+                $listar->fullRead(
+                    "SELECT id, name AS nome, apelido, imagem, estilo_jogo, mao_dominante, pontuacao_ranking, genero, data_nascimento 
+                     FROM adms_users 
+                     WHERE adms_access_level_id = 14 
+                     AND (name LIKE :search OR apelido LIKE :search)
+                     ORDER BY pontuacao_ranking DESC", 
+                    "search={$termoBusca}"
+                );
+            } else {
+                $listar->fullRead(
+                    "SELECT id, name AS nome, apelido, imagem, estilo_jogo, mao_dominante, pontuacao_ranking, genero, data_nascimento 
+                     FROM adms_users 
+                     WHERE adms_access_level_id = 14 
+                     ORDER BY pontuacao_ranking DESC"
+                );
+            }
         } else {
-            $listar->fullRead(
-                "SELECT id, name AS nome, apelido, imagem, estilo_jogo, mao_dominante, pontuacao_ranking, genero, data_nascimento 
-                 FROM adms_users 
-                 WHERE adms_access_level_id = 14 AND empresa_id = :empresa 
-                 ORDER BY pontuacao_ranking DESC", 
-                "empresa={$empresaId}"
-            );
+            // =========================================================
+            // VISÃO DO CLUBE - Ranking Interno (Filiados ou Visitantes Aprovados)
+            // =========================================================
+            if ($termoBusca) {
+                $listar->fullRead(
+                    "SELECT DISTINCT usr.id, usr.name AS nome, usr.apelido, usr.imagem, usr.estilo_jogo, 
+                                     usr.mao_dominante, usr.pontuacao_ranking, usr.genero, usr.data_nascimento 
+                     FROM adms_users AS usr
+                     LEFT JOIN adms_inscricoes AS ins ON ins.adms_user_id = usr.id
+                     LEFT JOIN adms_competicoes AS comp ON comp.id = ins.adms_competicao_id
+                     WHERE usr.adms_access_level_id = 14 
+                     AND (
+                         usr.clube_filiacao_id = :empresa 
+                         OR (comp.empresa_id = :empresa AND ins.status_pagamento_id = 2)
+                     )
+                     AND (usr.name LIKE :search OR usr.apelido LIKE :search)
+                     ORDER BY usr.pontuacao_ranking DESC", 
+                    "empresa={$empresaId}&search={$termoBusca}"
+                );
+            } else {
+                $listar->fullRead(
+                    "SELECT DISTINCT usr.id, usr.name AS nome, usr.apelido, usr.imagem, usr.estilo_jogo, 
+                                     usr.mao_dominante, usr.pontuacao_ranking, usr.genero, usr.data_nascimento 
+                     FROM adms_users AS usr
+                     LEFT JOIN adms_inscricoes AS ins ON ins.adms_user_id = usr.id
+                     LEFT JOIN adms_competicoes AS comp ON comp.id = ins.adms_competicao_id
+                     WHERE usr.adms_access_level_id = 14 
+                     AND (
+                         usr.clube_filiacao_id = :empresa 
+                         OR (comp.empresa_id = :empresa AND ins.status_pagamento_id = 2)
+                     )
+                     ORDER BY usr.pontuacao_ranking DESC", 
+                    "empresa={$empresaId}"
+                );
+            }
         }
 
         $atletas = $listar->getResult() ?: [];

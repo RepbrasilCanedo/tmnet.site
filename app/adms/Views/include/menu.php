@@ -10,7 +10,7 @@
         <div class="client-logo">
             <?php 
             if(!empty($_SESSION['emp_user'])){
-                echo "<img src='" . URLADM . "app/adms/assets/image/logo/clientes/". $_SESSION['emp_user']."/logo.png' alt='Logo Cliente' style='max-width: 40%; margin: 20px auto; display: block;'>";
+                echo "<img src='" . URLADM . "app/adms/assets/image/logo/clientes/". $_SESSION['emp_user']."/logo_etpam.png' alt='Logo Cliente' style='max-width: 40%; margin: 20px auto; display: block;'>";
             } else {
                 echo "<div class='default-client-icon' style='text-align:center; padding: 20px;'><i class='fa-solid fa-building fa-2x'></i></div>";
             }      

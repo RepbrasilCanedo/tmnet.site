@@ -95,6 +95,25 @@ $categoriasSelecionadas = $valorForm['categorias_selecionadas'] ?? [];
                     </div>
                 </div>
 
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #c3e6cb; margin-bottom: 20px;">
+                    <h5 style="margin-top: 0; color: #155724; border-bottom: 1px solid #c3e6cb; padding-bottom: 5px;">💰 Valores e Forma de Pagamento</h5>
+                    
+                    <div class="row-input">
+                        <div class="column">
+                            <label class="title-input" style="color: #155724;">Valor para UMA Categoria (R$):</label>
+                            <input type="text" name="valor_uma_categoria" class="input-adm" placeholder="Ex: 50.00" value="<?= $valorForm['valor_uma_categoria'] ?? '' ?>">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #155724;">Valor para DUAS Categorias (R$):</label>
+                            <input type="text" name="valor_duas_categorias" class="input-adm" placeholder="Ex: 80.00" value="<?= $valorForm['valor_duas_categorias'] ?? '' ?>">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #155724;">Chave PIX (Para receber):<span class="text-danger">*</span></label>
+                            <input type="text" name="chave_pix" class="input-adm" placeholder="E-mail, CPF, Celular..." value="<?= $valorForm['chave_pix'] ?? '' ?>" required>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="background: #fdf5e6; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 20px; margin-top: 10px;">
                     <label class="title-input" style="color: #856404; font-size: 18px; margin-bottom: 5px;">🏆 Pontuação para o Ranking Geral</label>
                     <p style="font-size: 13px; color: #666; margin-top: 0; margin-bottom: 15px;">Configure os pontos que este torneio distribuirá. <br><i>Se deixar tudo Zerado, o torneio será considerado "Amistoso" e não valerá pontos para o ranking.</i></p>

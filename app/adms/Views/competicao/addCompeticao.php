@@ -27,15 +27,15 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                 
                 <div class="row-input">
                     <div class="column">
-                        <label class="title-input">Nome do Torneio (Oficial)</label>
+                        <label class="title-input">Nome do Torneio (Oficial)<span class="text-danger">*</span></label>
                         <input type="text" name="nome_torneio" class="input-adm" placeholder="Ex: TMB Estadual - 1ª Etapa" value="<?= $this->data['form']['nome_torneio'] ?? '' ?>" required>
                     </div>
                     <div class="column">
-                        <label class="title-input">Data do Evento</label>
+                        <label class="title-input">Data do Evento<span class="text-danger">*</span></label>
                         <input type="date" name="data_evento" class="input-adm" value="<?= $this->data['form']['data_evento'] ?? '' ?>" required>
                     </div>
                     <div class="column">
-                        <label class="title-input">Horário de Início</label>
+                        <label class="title-input">Horário de Início<span class="text-danger">*</span></label>
                         <input type="time" name="horario_inicio" class="input-adm" value="<?= $this->data['form']['horario_inicio'] ?? '08:00' ?>" required>
                     </div>
                 </div>
@@ -44,9 +44,9 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                     <div class="column">
                         <label class="title-input">Nível / Chancela do Torneio</label>
                         <select name="categoria_cbtm" class="input-adm">
-                            <option value="TMB Estadual">TMB Estadual</option>
-                            <option value="TMB Challenge Plus">TMB Challenge Plus</option>
-                            <option value="TMB Platinum">TMB Platinum</option>
+                            <option value="Campeonato Estadual">Campeonato Estadual</option>
+                            <option value="Etapa">Etapa</option>
+                            <option value="Torneio Aberto">Torneio Aberto</option>
                             <option value="Liga Regional">Liga Regional / Municipal</option>
                             <option value="Torneio Interno">Torneio Interno (Clube)</option>
                             <option value="Festival">Festival / Iniciante</option>
@@ -55,9 +55,9 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                     <div class="column">
                         <label class="title-input">Fator Multiplicador (Peso Ranking)</label>
                         <select name="fator_multiplicador" class="input-adm">
-                            <option value="1.00">Peso 1.00 (Local / Treino)</option>
-                            <option value="1.50">Peso 1.50 (Estadual / Challenge)</option>
-                            <option value="2.00">Peso 2.00 (Nacional / Platinum)</option>
+                            <option value="1.00">Peso 1.00 </option>
+                            <option value="1.50">Peso 1.50</option>
+                            <option value="2.00">Peso 2.00 </option>
                         </select>
                     </div>
                 </div>
@@ -79,6 +79,26 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                                 ⚠️ Nenhuma categoria cadastrada no seu clube. <a href="<?= URLADM ?>add-categoria/index" style="color: #0044cc; font-weight: bold;">Clique aqui para criar</a> antes de agendar o torneio.
                             </div>
                         <?php endif; ?>
+                    </div>
+                </div>
+
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #c3e6cb; margin-bottom: 20px;">
+                    <h5 style="margin-top: 0; color: #155724; border-bottom: 1px solid #c3e6cb; padding-bottom: 5px;">💰 Valores e Forma de Pagamento</h5>
+                    <p style="font-size: 13px; color: #155724; margin-bottom: 15px;">Defina os valores das inscrições. O limite do sistema é de 2 categorias por atleta.</p>
+                    
+                    <div class="row-input">
+                        <div class="column">
+                            <label class="title-input" style="color: #155724;">Valor para UMA Categoria (R$):</label>
+                            <input type="text" name="valor_uma_categoria" class="input-adm" placeholder="Ex: 50.00" value="<?= $this->data['form']['valor_uma_categoria'] ?? '' ?>">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #155724;">Valor para DUAS Categorias (R$):</label>
+                            <input type="text" name="valor_duas_categorias" class="input-adm" placeholder="Ex: 80.00" value="<?= $this->data['form']['valor_duas_categorias'] ?? '' ?>">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #155724;">Chave PIX (Para receber):<span class="text-danger">*</span></label>
+                            <input type="text" name="chave_pix" class="input-adm" placeholder="E-mail, CPF, Celular..." value="<?= $this->data['form']['chave_pix'] ?? '' ?>" required>
+                        </div>
                     </div>
                 </div>
 

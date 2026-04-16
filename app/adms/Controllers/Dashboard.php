@@ -19,27 +19,25 @@ class Dashboard
         $nivelAcesso = isset($_SESSION['adms_access_level_id']) ? (int)$_SESSION['adms_access_level_id'] : 0;
         $userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
         
-        $this->data['nivelAcesso'] = $nivelAcesso; // Passa o nível para a View
+        $this->data['nivelAcesso'] = $nivelAcesso; 
 
         if ($nivelAcesso === 14) {
-            // VISÃO DO ATLETA (Perfil)
+            // ==========================================================
+            // VISÃO DO ATLETA (Vitrine de Competições)
+            // ==========================================================
             $this->data['sidebarActive'] = "dashboard"; 
             
-            $perfilModel = new \App\adms\Models\AdmsPerfilAtleta();
-            $perfilModel->carregarPerfil($userId);
-
-            $this->data['perfil'] = $perfilModel->getDadosPerfil();
-            $this->data['historico'] = $perfilModel->getHistorico();
-            $this->data['estatisticas'] = $perfilModel->getEstatisticas();
-            $this->data['proximos_jogos'] = $perfilModel->getProximosJogos();
+            $vitrine = new \App\adms\Models\AdmsDashboard();
+            // DOCAN FIX: Passando o ID do Atleta para a Model procurar as inscrições dele
+            $vitrine->getVitrineCompeticoes($userId); 
             
-            $loadView = new \Core\ConfigView("adms/Views/ranking/perfilAtleta", $this->data);
+            $this->data['vitrine'] = $vitrine->getResult()['vitrine'] ?? [];
+            
+            $loadView = new \Core\ConfigView("adms/Views/dashboard/dashboard", $this->data);
             $loadView->loadView();
 
         } elseif ($nivelAcesso === 15) {
-            // ==========================================================
-            // VISÃO DO ÁRBITRO (NOVO)
-            // ==========================================================
+            // VISÃO DO ÁRBITRO
             $this->data['sidebarActive'] = "dashboard";
 
             $estatisticas = new \App\adms\Models\AdmsDashboard();

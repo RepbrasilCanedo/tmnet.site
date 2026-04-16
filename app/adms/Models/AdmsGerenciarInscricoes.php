@@ -23,11 +23,12 @@ class AdmsGerenciarInscricoes
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
+        // 1. Pega as categorias configuradas neste torneio
         $read->fullRead("SELECT categorias_selecionadas FROM adms_competicoes WHERE id = :id LIMIT 1", "id={$compId}");
         $catIdsStr = $read->getResult()[0]['categorias_selecionadas'] ?? '';
-        
         $catIdsArray = explode(',', $catIdsStr);
 
+        // 2. Busca todas as categorias do clube e filtra só as que pertencem ao torneio
         $read->fullRead("SELECT * FROM adms_categorias WHERE empresa_id = :empresa ORDER BY pontuacao_maxima DESC, nome ASC", "empresa={$_SESSION['emp_user']}");
         $todasCategorias = $read->getResult() ?: [];
 
@@ -38,6 +39,7 @@ class AdmsGerenciarInscricoes
             }
         }
 
+        // 3. Busca quem já está inscrito (já pode ser de qualquer clube, se pagou e foi aprovado na vitrine)
         $read->fullRead(
             "SELECT i.id as inscricao_id, u.id as atleta_id, u.name, u.apelido, u.pontuacao_ranking, c.nome as nome_categoria 
              FROM adms_inscricoes i 
@@ -49,12 +51,15 @@ class AdmsGerenciarInscricoes
         );
         $this->inscritos = $read->getResult();
 
-        // CONTA AS INSCRIÇÕES E REMOVE QUEM JÁ TEM 2 (Regra de Ouro)
+        // ========================================================================
+        // DOCAN FIX: TRAVA DE VISIBILIDADE NO SELECT DE INSCRIÇÃO MANUAL
+        // O clube só pode inscrever manualmente os atletas que SÃO FILIADOS a ele.
+        // ========================================================================
         $read->fullRead(
             "SELECT id, name, apelido, pontuacao_ranking, data_nascimento,
                     (SELECT COUNT(id) FROM adms_inscricoes WHERE adms_competicao_id = :comp_id AND adms_user_id = adms_users.id) AS qtd_inscricoes
              FROM adms_users 
-             WHERE adms_access_level_id = 14 AND empresa_id = :empresa 
+             WHERE adms_access_level_id = 14 AND clube_filiacao_id = :empresa 
              ORDER BY name ASC", 
             "empresa={$_SESSION['emp_user']}&comp_id={$compId}"
         );
@@ -62,9 +67,10 @@ class AdmsGerenciarInscricoes
         $todosAtletas = $read->getResult() ?: [];
         $this->disponiveis = [];
         
+        // Remove do Select quem já atingiu o limite de 2 categorias no torneio
         foreach ($todosAtletas as $atl) {
             if ($atl['qtd_inscricoes'] < 2) {
-                $this->disponiveis[] = $atl; // Só entra na lista se tiver 0 ou 1 inscrição
+                $this->disponiveis[] = $atl; 
             }
         }
     }
@@ -140,10 +146,12 @@ class AdmsGerenciarInscricoes
                 $this->result = false; return;
             }
 
+            // DOCAN FIX: Ao inscrever o atleta manualmente, o clube assume que a taxa está isenta ou já paga por fora.
             $dadosInscricao = [
                 'adms_competicao_id' => $compId,
                 'adms_user_id' => $userId,
                 'adms_categoria_id' => $catId,
+                'status_pagamento_id' => 3, // Status "3 = Isento / Resolvido" para não cair na malha de cobrança.
                 'created' => date("Y-m-d H:i:s")
             ];
             

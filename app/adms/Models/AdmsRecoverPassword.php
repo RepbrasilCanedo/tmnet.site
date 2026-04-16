@@ -18,7 +18,7 @@ class AdmsRecoverPassword
     public function recover(array $data): void
     {
         $this->data = $data;
-        $this->data['email'] = trim($this->data['email']); // Remove espaços em branco acidentais
+        $this->data['email'] = trim($this->data['email']); 
         
         // 1. Verifica se o e-mail existe no banco
         $read = new \App\adms\Models\helper\AdmsRead();
@@ -60,10 +60,10 @@ class AdmsRecoverPassword
         $contentHtml = "Olá <b>$nome</b>,<br><br>";
         $contentHtml .= "Você solicitou a recuperação de senha no sistema <b>TMNet</b>.<br>";
         $contentHtml .= "Para criar uma nova senha, clique no link abaixo:<br><br>";
-        $contentHtml .= "<a href='$link'>Clique aqui para redefinir sua senha</a><br><br>";
-        $contentHtml .= "Se o link não abrir, copie e cole este endereço no navegador:<br>";
+        $contentHtml .= "<a href='$link' style='background: #0044cc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;'>Redefinir Minha Senha</a><br><br>";
+        $contentHtml .= "Se o botão não funcionar, copie e cole este endereço no seu navegador:<br>";
         $contentHtml .= "$link<br><br>";
-        $contentHtml .= "Se você não solicitou isso, por favor, ignore este e-mail.<br><br>";
+        $contentHtml .= "Se você não solicitou isto, por favor, ignore este e-mail.<br><br>";
         $contentHtml .= "Atenciosamente,<br>Equipe TMNet.";
 
         $contentText = "Olá $nome,\n\nVocê solicitou a recuperação de senha no TMNet.\n";
@@ -72,7 +72,7 @@ class AdmsRecoverPassword
         $emailData = [
             'toEmail' => $emailDestino,
             'toName' => $this->resultBd[0]['name'],
-            'subject' => 'Recuperar Senha - TMNet',
+            'subject' => 'Recuperação de Senha - TMNet',
             'contentHtml' => $contentHtml,
             'contentText' => $contentText
         ];
@@ -81,11 +81,12 @@ class AdmsRecoverPassword
         $sendMail->sendEmail($emailData);
 
         if ($sendMail->getResult()) {
-            $_SESSION['msg'] = "<p class='alert-success'>Enviamos um link de recuperação para o seu e-mail! (Verifique também o Spam).</p>";
+            $_SESSION['msg'] = "<p class='alert-success'>🚀 Sucesso! Enviamos um link de recuperação para o seu e-mail (Verifique a caixa de Spam).</p>";
             $this->result = true;
         } else {
-            // ERRO DE HOSTGATOR CAPTURADO AQUI:
-            $_SESSION['msg'] = "<p class='alert-danger'>O e-mail existe, mas o servidor da HostGator bloqueou o envio da mensagem. Verifique a configuração do seu arquivo AdmsPhpMailer.php!</p>";
+            // DOCAN FIX: Mostra o erro real do PHPMailer caso o Gmail recuse a ligação
+            $erroReal = $sendMail->getErrorMsg();
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro ao enviar o e-mail: {$erroReal}</p>";
             $this->result = false;
         }
     }
