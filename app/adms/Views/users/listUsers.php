@@ -97,14 +97,14 @@ if (isset($this->data['form'])) {
                 <thead class="list-head">
                     <tr>
                         <th class="list-head-content">ID</th>
-                        <th class="list-head-content table-sm-none">Nome</th>
-                        <th class="list-head-content">Apelido</th>
-                        <th class="list-head-content">Pontuação</th>
-                        <th class="list-head-content">Estilo</th>
+                        <th class="list-head-content">Nome</th>
+                        <th class="list-head-content table-sm-none">Apelido</th>
+                        <th class="list-head-content table-sm-none">Pontuação</th>
+                        <th class="list-head-content table-sm-none">Estilo</th>
                         <th class="list-head-content table-sm-none">Mão Dominante</th>
                         <th class="list-head-content">Usuario</th>
                         <th class="list-head-content table-md-none">Tel/WhatsApp</th>
-                        <th class="list-head-content table-md-none">Situação</th>
+                        <th class="list-head-content">Situação</th>
                         <th class="list-head-content">Ações</th>
                     </tr>
                 </thead>
@@ -115,14 +115,14 @@ if (isset($this->data['form'])) {
                     ?>
                         <tr>
                             <td class="list-body-content"><?php echo $id; ?></td>
-                            <td class="list-body-content table-sm-none"><?php echo $name_usr; ?></td>
-                            <td class="list-body-content"><?php echo $apelido; ?></td>
-                            <td class="list-body-content"><?php echo $pontuacao_ranking; ?></td>
-                            <td class="list-body-content"><?php echo $estilo_jogo; ?></td>
+                            <td class="list-body-content"><?php echo $name_usr; ?></td>
+                            <td class="list-body-content table-sm-none"><?php echo $apelido; ?></td>
+                            <td class="list-body-content table-sm-none"><?php echo $pontuacao_ranking; ?></td>
+                            <td class="list-body-content table-sm-none"><?php echo $estilo_jogo; ?></td>
                             <td class="list-body-content table-sm-none"><?php echo $mao_dominante; ?></td>
                             <td class="list-body-content"><?php echo $name_lev; ?></td>
                             <td class="list-body-content table-sm-none"><?php echo $telefone; ?></td>
-                            <td class="list-body-content table-md-none">
+                            <td class="list-body-content">
                                 <?php echo "<span style='color: $color'>$name_sit</span>"; ?>
                             </td>
                             <td class="list-body-content">

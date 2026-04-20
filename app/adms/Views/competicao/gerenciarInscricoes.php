@@ -8,7 +8,7 @@ $categorias = $this->data['categorias_torneio'] ?? [];
 $dataEvento = $this->data['data_evento'] ?? date('Y-m-d');
 
 function calcIdade($nascimento, $dataEvt) {
-    if (empty($nascimento)) return 0;
+    if (empty($nascimento) || $nascimento === '0000-00-00') return 0;
     $dtNasc = new DateTime($nascimento);
     $dtEvento = new DateTime($dataEvt);
     return $dtNasc->diff($dtEvento)->y;
@@ -33,6 +33,13 @@ function calcIdade($nascimento, $dataEvt) {
             ?>
         </div>
 
+        <?php if (!empty($this->data['pendentes']) && $this->data['pendentes'] > 0): ?>
+            <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 6px; border-left: 5px solid #ffc107; margin-bottom: 20px;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Aviso Importante:</strong> Existem <b><?= $this->data['pendentes'] ?> atleta(s)</b> com inscrições <strong>Aguardando Pagamento</strong>.<br>
+                <small>Eles sumiram do Select porque já usaram as suas vagas, mas não aparecem nas Chaves até serem aprovados. <a href="<?= URLADM ?>gerir-inscricoes/index?comp=<?= $this->data['competicao_id'] ?>" style="color: #0044cc; font-weight: bold; text-decoration: underline;">Vá ao menu "Gerir Inscrições" para os aprovar.</a></small>
+            </div>
+        <?php endif; ?>
+
         <?php if (empty($categorias)): ?>
             <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 6px; border-left: 5px solid #ffeeba; margin-bottom: 20px; font-weight: bold;">
                 ⚠️ Atenção: Este torneio não possui nenhuma Categoria vinculada!<br>
@@ -56,8 +63,9 @@ function calcIdade($nascimento, $dataEvt) {
                                     $idade = calcIdade($atl['data_nascimento'], $dataEvento); 
                                     $rating = (float)$atl['pontuacao_ranking'];
                                     $qtdIns = (int)$atl['qtd_inscricoes'];
+                                    $catsInscritas = $atl['cats_inscritas'] ?? ''; 
                                 ?>
-                                <option value="<?= $atl['id'] ?>" data-idade="<?= $idade ?>" data-rating="<?= $rating ?>" data-inscritas="<?= $qtdIns ?>">
+                                <option value="<?= $atl['id'] ?>" data-idade="<?= $idade ?>" data-rating="<?= $rating ?>" data-inscritas="<?= $qtdIns ?>" data-cats-inscritas="<?= $catsInscritas ?>">
                                     <?= $atl['name'] ?> (<?= $atl['apelido'] ?>) | Pts: <?= $rating ?> | Vagas Usadas: <?= $qtdIns ?>/2
                                 </option>
                             <?php endforeach; ?>
@@ -78,7 +86,7 @@ function calcIdade($nascimento, $dataEvt) {
             </form>
         </div>
 
-        <h3 style="color: #333;">Inscrições Confirmadas (<?= !empty($this->data['inscritos']) ? count($this->data['inscritos']) : 0 ?> vagas)</h3>
+        <h3 style="color: #333;">Atletas APROVADOS nas Chaves (<?= !empty($this->data['inscritos']) ? count($this->data['inscritos']) : 0 ?> vagas)</h3>
         <table class="list-table">
             <thead>
                 <tr>
@@ -108,7 +116,7 @@ function calcIdade($nascimento, $dataEvt) {
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="4" style="text-align: center; padding: 30px;">Nenhum atleta inscrito até o momento.</td></tr>
+                    <tr><td colspan="4" style="text-align: center; padding: 30px;">Nenhum atleta APROVADO até o momento. Aprovações são feitas no menu "Gerir Inscrições".</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -138,19 +146,23 @@ function filtrarCategorias() {
     const ratingAtleta = parseFloat(optAtleta.getAttribute('data-rating')) || 0;
     const inscritasJa = parseInt(optAtleta.getAttribute('data-inscritas')) || 0;
     
+    const catsInscritasStr = optAtleta.getAttribute('data-cats-inscritas') || "";
+    const arrayCatsJaInscritas = catsInscritasStr.split(',');
+    
     const vagasDisponiveis = 2 - inscritasJa;
 
     container.innerHTML = ''; 
     let countDisponiveis = 0;
 
     categoriasOriginais.forEach(cat => {
+        if (arrayCatsJaInscritas.includes(cat.id.toString())) { return; }
+
         let apto = true;
         
         let i_min = (cat.idade_minima !== null && cat.idade_minima !== "") ? parseInt(cat.idade_minima) : null;
         let i_max = (cat.idade_maxima !== null && cat.idade_maxima !== "") ? parseInt(cat.idade_maxima) : null;
         let r_max = (cat.pontuacao_maxima !== null && cat.pontuacao_maxima !== "") ? parseFloat(cat.pontuacao_maxima) : null;
 
-        // Regras:
         if (i_max !== null && idadeAtleta > i_max) apto = false;
         if (i_min !== null && idadeAtleta < i_min) apto = false;
         if (r_max !== null && ratingAtleta > r_max) apto = false;
@@ -165,11 +177,10 @@ function filtrarCategorias() {
             checkbox.value = cat.id;
             checkbox.style.cssText = "width: 16px; height: 16px; cursor: pointer;";
             
-            // TRAVA JS DE CLIQUES MÚLTIPLOS (Trava de Ouro)
             checkbox.onclick = function() {
                 let marcados = container.querySelectorAll('input[type="checkbox"]:checked').length;
                 if (marcados > vagasDisponiveis) {
-                    this.checked = false; // Desmarca a caixinha instantaneamente
+                    this.checked = false; 
                     alert('Regulamento: O limite máximo é de 2 categorias por atleta! O atleta já tem ' + inscritasJa + ' inscrição(ões) ativa(s).');
                 }
             };
@@ -186,7 +197,11 @@ function filtrarCategorias() {
     });
 
     if (countDisponiveis === 0) {
-        container.innerHTML = '<span style="color: #dc3545; font-weight: bold; font-size: 14px;">🚫 O Atleta não tem Idade ou Nível Técnico para jogar neste torneio.</span>';
+        if (inscritasJa >= 2) {
+            container.innerHTML = '<span style="color: #28a745; font-weight: bold; font-size: 14px;">✅ Este atleta já utilizou as suas 2 vagas neste torneio!</span>';
+        } else {
+            container.innerHTML = '<span style="color: #dc3545; font-weight: bold; font-size: 14px;">🚫 O Atleta não tem Idade ou Nível Técnico para as categorias restantes.</span>';
+        }
     }
 }
 </script>

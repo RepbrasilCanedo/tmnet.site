@@ -39,16 +39,6 @@ class AdmsLogin {
 
         $this->resultBd = $readUser->getResult();
 
-        // Se não encontrar, tenta no Usuário Final (adms_users_final)
-        if (!$this->resultBd) {
-            $readUser->fullRead("SELECT usr.*, lev.order_levels 
-                    FROM adms_users_final AS usr
-                    INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id
-                    WHERE (usr.adms_sits_user_id= :situacao) AND (usr.user=:user OR usr.email =:email) 
-                    LIMIT :limit", "situacao=1&user={$userBind}&email={$userBind}&limit=1");
-            $this->resultBd = $readUser->getResult();
-        }
-
         if ($this->resultBd) {
             $this->valPassword();
         } else {

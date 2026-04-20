@@ -13,27 +13,12 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
  */
 class CarregarPgAdmLevel
 {
-    /** @var string $urlController Recebe da URL o nome da controller */
     private string $urlController;
-    /** @var string $urlMetodo Recebe da URL o nome do método */
     private string $urlMetodo;
-    /** @var string $urlParamentro Recebe da URL o parametro */
     private string $urlParameter;
-    /** @var string $classLoad Controller que deve ser carregada */
     private string $classLoad;
-
-    /** @var array|null $resultPage Recebe os dados da pagina do banco de dados */
     private array|null $resultPage;
-    /** @var array|null $resultLevelPage Recebe os dados da permissao do banco de dados */
     private array|null $resultLevelPage;
-
-
-    /**
-     * Receber os paramentros e instanciar a classe pesquisar pagina
-     * @param string $urlController Recebe da URL o nome da controller
-     * @param string $urlMetodo Recebe da URL o método
-     * @param string $urlParamentro Recebe da URL o parâmetro
-     */
 
     public function loadPage(string|null $urlController, string|null $urlMetodo, string|null $urlParameter): void
     {
@@ -43,11 +28,6 @@ class CarregarPgAdmLevel
         $this->searchPage();
     }
 
-    /**
-     * Verificar no banco de dados se existe a classe e o metodo
-     *
-     * @return void
-     */
     private function searchPage(): void
     {
         $searchPage = new \App\adms\Models\helper\AdmsRead();
@@ -67,33 +47,20 @@ class CarregarPgAdmLevel
                 $this->verifyLogin();
             }
         } else {
-            /*$_SESSION['msg'] = "<p class='alert-danger'>Erro: Página não encontrada!</p>";
-            $urlRedirect = URLADM . "login/index";
-            header("Location: $urlRedirect");*/
-            die("Erro - 006: Por favor tente novamente. Caso o problema persista, entre em contato o administrador " . EMAILADM);
+            die("Erro - 006: Por favor tente novamente. Caso o problema persista, entre em contato com o administrador " . EMAILADM);
         }
     }
 
-    /**
-     * Verificar se existe o metodo e carregar a pagina
-     *
-     * @return void
-     */
     private function loadMetodo(): void
     {
         $classLoad = new $this->classLoad();
         if (method_exists($classLoad, $this->urlMetodo)) {
             $classLoad->{$this->urlMetodo}($this->urlParameter);
         } else {
-            die("Erro - 007: Por favor tente novamente. Caso o problema persista, entre em contato o administrador " . EMAILADM);
+            die("Erro - 007: Por favor tente novamente. Caso o problema persista, entre em contato com o administrador " . EMAILADM);
         }
     }
 
-    /**
-     * Verificar se o usuário está logado e carrega a pagina
-     *
-     * @return void
-     */
     private function verifyLogin(): void
     {
         if ((isset($_SESSION['user_id'])) and (isset($_SESSION['user_name']))  and (isset($_SESSION['user_email'])) and (isset($_SESSION['adms_access_level_id'])) and (isset($_SESSION['order_levels']))) {
@@ -102,14 +69,10 @@ class CarregarPgAdmLevel
             $_SESSION['msg'] = "<p class='alert-danger'>Erro: Para acessar a página realize o login!</p>";
             $urlRedirect = URLADM . "login/index";
             header("Location: $urlRedirect");
+            exit; // DOCAN FIX: Trava a execução do script para não destruir a sessão!
         }
     }
 
-    /**
-     * Verificar no banco de dados se o nivel de acesso do usuario tem permissao de acessa a pagina
-     *
-     * @return void
-     */
     private function searchLevelPage(): void
     {
         $searchLevelPage = new \App\adms\Models\helper\AdmsRead();
@@ -125,9 +88,9 @@ class CarregarPgAdmLevel
             $this->classLoad = "\\App\\" . $this->resultPage[0]['type'] . "\\Controllers\\" . $this->urlController;
             $this->loadMetodo();
         } else {            
-           // $_SESSION['msg'] = "<p class='alert-danger'>Erro: Necessário permissão para acessar a página!</p>";
             $urlRedirect = URLADM . "login/index";
             header("Location: $urlRedirect");
+            exit; // DOCAN FIX: Trava a execução do script!
         }
     }
 }

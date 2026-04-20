@@ -7,11 +7,6 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     die("Erro: Página não encontrada<br>");
 }
 
-/**
- * Editar o usuário no banco de dados
- *
- * @author Daniel Canedo - docan2006@gmail.com
- */
 class AdmsEditUsers
 {
     private bool $result = false;
@@ -19,9 +14,7 @@ class AdmsEditUsers
     private int|string|null $id;
     private array|null $data;
     private array|null $listRegistryAdd;
-    private array|null $dataExitVal;
     
-    // Variável para guardar o status antigo
     private int $statusAnterior = 0; 
 
     function getResult(): bool { return $this->result; }
@@ -32,8 +25,8 @@ class AdmsEditUsers
         $this->id = $id;
 
         $viewUser = new \App\adms\Models\helper\AdmsRead();
-        $viewUser->fullRead("SELECT usr.id, usr.name, usr.apelido, usr.data_nascimento, usr.mao_dominante, usr.estilo_jogo, usr.sexo, usr.email, usr.telefone, usr.empresa_id,  usr.user, 
-                            usr.adms_sits_user_id, usr.adms_access_level_id FROM adms_users AS usr
+        $viewUser->fullRead("SELECT usr.id, usr.name, usr.apelido, usr.data_nascimento, usr.mao_dominante, usr.estilo_jogo, usr.sexo, usr.email, usr.telefone, usr.empresa_id, usr.user, 
+                            usr.adms_sits_user_id, usr.adms_access_level_id, usr.pontuacao_ranking FROM adms_users AS usr
                             INNER JOIN adms_access_levels AS lev ON lev.id=usr.adms_access_level_id
                             WHERE usr.id=:id AND lev.order_levels >:order_levels
                             LIMIT :limit",
@@ -53,7 +46,6 @@ class AdmsEditUsers
     {
         $this->data = $data; 
         
-        // Descobre qual é o status atual do usuário ANTES de atualizar
         $readStatus = new \App\adms\Models\helper\AdmsRead();
         $readStatus->fullRead("SELECT adms_sits_user_id FROM adms_users WHERE id=:id LIMIT 1", "id={$this->data['id']}");
         if ($readStatus->getResult()) {
@@ -90,70 +82,82 @@ class AdmsEditUsers
     private function edit(): void
     {
         date_default_timezone_set('America/Bahia');
-
         $this->data['modified'] = date("Y-m-d H:i:s");
         
-        if ($_SESSION['adms_access_level_id'] >= 2) {
-            $this->data['empresa_id'] = $_SESSION['emp_user'];
+        // ========================================================================
+        // DOCAN FIX: LÓGICA DE FILIAÇÃO (N:N) NO EDITAR
+        // ========================================================================
+        $clubeId = 1;
+        if ($_SESSION['adms_access_level_id'] > 2) {
+            $clubeId = $_SESSION['emp_user']; // Clube editando
+        } elseif (!empty($this->data['empresa_id'])) {
+            $clubeId = $this->data['empresa_id']; // S-Admin editando (escolheu no select)
         }
 
+        // Se for Atleta (14), ele pertence à TMNet (1). Se for gestor, pertence ao Clube ($clubeId)
+        if (isset($this->data['adms_access_level_id']) && $this->data['adms_access_level_id'] == 14) {
+            $this->data['empresa_id'] = 1;
+        } else {
+            $this->data['empresa_id'] = $clubeId;
+        }
+
+        $userId = $this->data['id'];
+
         $upUser = new \App\adms\Models\helper\AdmsUpdate();
-        $upUser->exeUpdate("adms_users", $this->data, "WHERE id=:id", "id={$this->data['id']}");
+        $upUser->exeUpdate("adms_users", $this->data, "WHERE id=:id", "id={$userId}");
 
         if ($upUser->getResult()) {
             $_SESSION['msg'] = "<p class='alert-success'>Usuário editado com sucesso!</p>";
             $this->result = true;
 
-            // ========================================================================
-            // DOCAN TRIGGER: Se ele era "Pré-Cadastro" (3) e virou "Ativo" (1)
-            // ========================================================================
+            // Insere o atleta na tabela ponte se a relação ainda não existir
+            if (isset($this->data['adms_access_level_id']) && $this->data['adms_access_level_id'] == 14 && $clubeId != 1) {
+                $readRel = new \App\adms\Models\helper\AdmsRead();
+                $readRel->fullRead("SELECT id FROM adms_atleta_clube WHERE adms_user_id = :u AND empresa_id = :e LIMIT 1", "u={$userId}&e={$clubeId}");
+                
+                if (!$readRel->getResult()) {
+                    $dadosClubeAtleta = [
+                        'adms_user_id' => $userId,
+                        'empresa_id' => $clubeId,
+                        'created' => date("Y-m-d H:i:s")
+                    ];
+                    $createRel = new \App\adms\Models\helper\AdmsCreate();
+                    $createRel->exeCreate("adms_atleta_clube", $dadosClubeAtleta);
+                }
+            }
+
             $novoStatus = (int)$this->data['adms_sits_user_id'];
             if ($this->statusAnterior === 3 && $novoStatus === 1) {
                 $this->gerarBotaoWhatsAppBoasVindas();
             }
-
         } else {
             $_SESSION['msg'] = "<p class='alert-danger'>Erro: Nenhuma alteração foi feita no usuário.</p>";
             $this->result = false;
         }
     }
 
-    // ========================================================================
-    // DOCAN ENGINE: GERADOR DE BOTÃO DO WHATSAPP (CAMINHO B)
-    // ========================================================================
     private function gerarBotaoWhatsAppBoasVindas(): void
     {
-        // Limpa o telefone (Tira parênteses, traços e espaços)
         $telefoneLimpo = preg_replace('/\D/', '', $this->data['telefone']);
-        
-        // Se não tiver o formato correto, cancela a geração do botão
         if (strlen($telefoneLimpo) < 10) return; 
+        if (substr($telefoneLimpo, 0, 2) !== '55') $telefoneLimpo = '55' . $telefoneLimpo;
 
-        // Adiciona o código do Brasil se o usuário não tiver digitado
-        if (substr($telefoneLimpo, 0, 2) !== '55') {
-            $telefoneLimpo = '55' . $telefoneLimpo;
-        }
-
-        // Prepara a Mensagem
         $nomeAtleta = $this->data['name'];
         $userAcesso = $this->data['user'];
-        $urlSistema = URLADM . "login/index"; // Direciona o atleta direto para o ecrã de login
+        $urlSistema = URLADM . "login/index";
 
         $mensagem = "🏓 *Olá, {$nomeAtleta}!* 🎉\n\n";
-        $mensagem .= "Ótimas notícias! O seu credenciamento no *TMNet* foi *APROVADO* com sucesso pelo seu Clube/Liga.\n\n";
-        $mensagem .= "Você já pode acessar o sistema para gerir o seu perfil e inscrever-se nos próximos torneios.\n\n";
+        $mensagem .= "O seu credenciamento no *TMNet* foi *APROVADO* com sucesso!\n\n";
         $mensagem .= "🔐 *Seu Login:* {$userAcesso}\n";
         $mensagem .= "🌐 *Acessar:* {$urlSistema}\n\n";
-        $mensagem .= "_Prepare a sua raquete e bons jogos!_ 🏆";
+        $mensagem .= "_Prepare a sua raquete!_ 🏆";
 
-        // Codifica a mensagem para formato de link
         $mensagemCodificada = urlencode($mensagem);
         $linkWhats = "https://api.whatsapp.com/send?phone={$telefoneLimpo}&text={$mensagemCodificada}";
 
-        // Injeta o botão HTML dentro da mensagem de Sucesso da Sessão
-        $_SESSION['msg'] .= "<div style='margin-top: 15px; margin-bottom: 10px; text-align: center;'>
-                                <a href='{$linkWhats}' target='_blank' style='background-color: #25D366; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
-                                    📲 Enviar WhatsApp de Boas-Vindas
+        $_SESSION['msg'] .= "<div style='margin-top: 15px; text-align: center;'>
+                                <a href='{$linkWhats}' target='_blank' style='background-color: #25D366; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;'>
+                                    📲 Enviar Boas-Vindas
                                 </a>
                              </div>";
     }
@@ -161,34 +165,35 @@ class AdmsEditUsers
     public function listSelect(): array
     {
         $list = new \App\adms\Models\helper\AdmsRead();
+        
+        $list->fullRead("SELECT id id_cat, nome nome_cat FROM adms_categorias ORDER BY nome ASC");
+        $registry['categorias'] = $list->getResult();
 
         if ($_SESSION['adms_access_level_id'] > 2){
             if (($_SESSION['adms_access_level_id'] == 4) or ($_SESSION['adms_access_level_id'] == 12)) {
                 $list->fullRead("SELECT id as id_sit, name as name_sit FROM adms_sits_users");
                 $registry['sit_user'] = $list->getResult();
 
-                $list->fullRead("SELECT clie.id, clie.razao_social, clie.nome_fantasia, clie.cnpjcpf, clie.empresa  FROM adms_clientes as clie
-                WHERE clie.empresa = :empresa order by clie.razao_social", "empresa={$_SESSION['emp_user']}");
+                $list->fullRead("SELECT clie.id, clie.razao_social, clie.nome_fantasia FROM adms_clientes as clie WHERE clie.empresa = :empresa order by clie.razao_social", "empresa={$_SESSION['emp_user']}");
                 $registry['clie_user'] = $list->getResult();
             
                 $list->fullRead("SELECT id id_emp, nome_fantasia nome_fantasia_emp FROM adms_clientes as emp WHERE empresa= :empresa", "empresa={$_SESSION['emp_user']}");
                 $registry['emp'] = $list->getResult();
 
-                $list->fullRead("SELECT id id_lev, name name_lev FROM adms_access_levels  WHERE order_levels >:order_levels ORDER BY name ASC", "order_levels=" . $_SESSION['order_levels']);
+                $list->fullRead("SELECT id id_lev, name name_lev FROM adms_access_levels WHERE order_levels >:order_levels ORDER BY name ASC", "order_levels=" . $_SESSION['order_levels']);
                 $registry['lev'] = $list->getResult();
             }
         } else {
-            $list->fullRead("SELECT id id_emp, nome_fantasia nome_fantasia_emp FROM adms_emp_principal as emp ORDER BY nome_fantasia ASC");
+            $list->fullRead("SELECT id id_emp, nome_fantasia nome_fantasia_emp FROM adms_emp_principal ORDER BY nome_fantasia ASC");
             $registry['emp'] = $list->getResult();
 
             $list->fullRead("SELECT id as id_sit, name as name_sit FROM adms_sits_users");
             $registry['sit_user'] = $list->getResult();
 
-            $list->fullRead("SELECT id id_lev, name name_lev FROM adms_access_levels  WHERE order_levels >:order_levels ORDER BY name ASC", "order_levels=" . $_SESSION['order_levels']);
+            $list->fullRead("SELECT id id_lev, name name_lev FROM adms_access_levels WHERE order_levels >:order_levels ORDER BY name ASC", "order_levels=" . $_SESSION['order_levels']);
             $registry['lev'] = $list->getResult();
         }
 
-        $this->listRegistryAdd = ['emp' => $registry['emp'], 'sit_user' => $registry['sit_user'], 'lev' => $registry['lev'], 'clie_user' => $registry['clie_user'] ?? []];
-        return $this->listRegistryAdd;
+        return ['emp' => $registry['emp'], 'sit_user' => $registry['sit_user'], 'lev' => $registry['lev'], 'clie_user' => $registry['clie_user'] ?? [], 'categorias' => $registry['categorias']];
     }   
 }

@@ -13,22 +13,22 @@ class AdmsGerenciarInscricoes
     private array|null $inscritos = null;
     private array|null $disponiveis = null;
     private array|null $categoriasTorneio = null;
+    private int $pendentes = 0;
 
     function getResult(): bool { return $this->result; }
     function getInscritos(): array|null { return $this->inscritos; }
     function getDisponiveis(): array|null { return $this->disponiveis; }
     function getCategoriasTorneio(): array|null { return $this->categoriasTorneio; }
+    function getPendentes(): int { return $this->pendentes; }
 
     public function carregarListas(int $compId): void
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
-        // 1. Pega as categorias configuradas neste torneio
         $read->fullRead("SELECT categorias_selecionadas FROM adms_competicoes WHERE id = :id LIMIT 1", "id={$compId}");
         $catIdsStr = $read->getResult()[0]['categorias_selecionadas'] ?? '';
         $catIdsArray = explode(',', $catIdsStr);
 
-        // 2. Busca todas as categorias do clube e filtra só as que pertencem ao torneio
         $read->fullRead("SELECT * FROM adms_categorias WHERE empresa_id = :empresa ORDER BY pontuacao_maxima DESC, nome ASC", "empresa={$_SESSION['emp_user']}");
         $todasCategorias = $read->getResult() ?: [];
 
@@ -39,35 +39,47 @@ class AdmsGerenciarInscricoes
             }
         }
 
-        // 3. Busca quem já está inscrito (já pode ser de qualquer clube, se pagou e foi aprovado na vitrine)
+        // 1. Busca os APROVADOS nas chaves
         $read->fullRead(
             "SELECT i.id as inscricao_id, u.id as atleta_id, u.name, u.apelido, u.pontuacao_ranking, c.nome as nome_categoria 
              FROM adms_inscricoes i 
              INNER JOIN adms_users u ON u.id = i.adms_user_id 
              INNER JOIN adms_categorias c ON c.id = i.adms_categoria_id
-             WHERE i.adms_competicao_id = :comp_id 
+             WHERE i.adms_competicao_id = :comp_id AND i.status_pagamento_id IN (2, 3)
              ORDER BY c.nome ASC, u.pontuacao_ranking DESC", 
             "comp_id={$compId}"
         );
         $this->inscritos = $read->getResult();
 
+        // Conta quantos pendentes existem
+        $read->fullRead(
+            "SELECT COUNT(DISTINCT adms_user_id) as total_pendentes 
+             FROM adms_inscricoes 
+             WHERE adms_competicao_id = :comp_id AND status_pagamento_id = 1", 
+            "comp_id={$compId}"
+        );
+        $this->pendentes = (int)($read->getResult()[0]['total_pendentes'] ?? 0);
+
         // ========================================================================
-        // DOCAN FIX: TRAVA DE VISIBILIDADE NO SELECT DE INSCRIÇÃO MANUAL
-        // O clube só pode inscrever manualmente os atletas que SÃO FILIADOS a ele.
+        // DOCAN FIX BLINDADO: A MÁGICA DA NOVA TABELA "N:N"
+        // Agora o Clube enxerga todos os atletas que estão vinculados a ele
+        // na tabela `adms_atleta_clube`!
         // ========================================================================
         $read->fullRead(
-            "SELECT id, name, apelido, pontuacao_ranking, data_nascimento,
-                    (SELECT COUNT(id) FROM adms_inscricoes WHERE adms_competicao_id = :comp_id AND adms_user_id = adms_users.id) AS qtd_inscricoes
-             FROM adms_users 
-             WHERE adms_access_level_id = 14 AND clube_filiacao_id = :empresa 
-             ORDER BY name ASC", 
+            "SELECT u.id, u.name, u.apelido, u.pontuacao_ranking, u.data_nascimento,
+                    (SELECT COUNT(id) FROM adms_inscricoes WHERE adms_user_id = u.id AND adms_competicao_id = :comp_id) AS qtd_inscricoes,
+                    (SELECT GROUP_CONCAT(adms_categoria_id) FROM adms_inscricoes WHERE adms_user_id = u.id AND adms_competicao_id = :comp_id) AS cats_inscritas
+             FROM adms_users u
+             INNER JOIN adms_atleta_clube ac ON ac.adms_user_id = u.id
+             WHERE u.adms_access_level_id >= 14 
+             AND ac.empresa_id = :empresa
+             ORDER BY u.name ASC", 
             "empresa={$_SESSION['emp_user']}&comp_id={$compId}"
         );
         
         $todosAtletas = $read->getResult() ?: [];
         $this->disponiveis = [];
         
-        // Remove do Select quem já atingiu o limite de 2 categorias no torneio
         foreach ($todosAtletas as $atl) {
             if ($atl['qtd_inscricoes'] < 2) {
                 $this->disponiveis[] = $atl; 
@@ -93,14 +105,13 @@ class AdmsGerenciarInscricoes
 
         $read = new \App\adms\Models\helper\AdmsRead();
 
-        // REGRA OFICIAL: Máximo de 2 inscrições por torneio
         $read->fullRead("SELECT COUNT(id) as total FROM adms_inscricoes WHERE adms_competicao_id = :comp AND adms_user_id = :user", "comp={$compId}&user={$userId}");
         $qtdExistente = (int)($read->getResult()[0]['total'] ?? 0);
         $qtdNovas = count($categoriasSelecionadas);
 
         if (($qtdExistente + $qtdNovas) > 2) {
             $vagasRestantes = 2 - $qtdExistente;
-            $_SESSION['msg'] = "<p class='alert-danger'>Erro de Regulamento: O limite é de 2 categorias por atleta. Este atleta tem direito a apenas mais {$vagasRestantes} vaga(s) neste torneio.</p>";
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: O limite é de 2 categorias por atleta. Este atleta tem direito a apenas mais {$vagasRestantes} vaga(s).</p>";
             $this->result = false; return;
         }
 
@@ -111,7 +122,7 @@ class AdmsGerenciarInscricoes
         $compInfo = $read->getResult()[0];
 
         $idade = 0;
-        if (!empty($atleta['data_nascimento'])) {
+        if (!empty($atleta['data_nascimento']) && $atleta['data_nascimento'] !== '0000-00-00') {
             $nascimento = new \DateTime($atleta['data_nascimento']);
             $dataEvento = new \DateTime($compInfo['data_evento']);
             $idade = $nascimento->diff($dataEvento)->y;
@@ -126,44 +137,38 @@ class AdmsGerenciarInscricoes
 
             $read->fullRead("SELECT id FROM adms_inscricoes WHERE adms_competicao_id = :comp AND adms_user_id = :user AND adms_categoria_id = :cat LIMIT 1", 
                             "comp={$compId}&user={$userId}&cat={$catId}");
-            if ($read->getResult()) {
-                continue; 
-            }
+            if ($read->getResult()) { continue; }
 
             $read->fullRead("SELECT nome, idade_minima, idade_maxima, pontuacao_maxima FROM adms_categorias WHERE id = :id LIMIT 1", "id={$catId}");
             $categoria = $read->getResult()[0];
 
             if (!is_null($categoria['idade_minima']) && $categoria['idade_minima'] !== '' && $idade < $categoria['idade_minima']) {
-                $_SESSION['msg'] = "<p class='alert-danger'>Erro: O atleta tem {$idade} anos. A '{$categoria['nome']}' exige mínimo de {$categoria['idade_minima']}.</p>";
+                $_SESSION['msg'] = "<p class='alert-danger'>Erro: O atleta tem {$idade} anos. Mínimo de {$categoria['idade_minima']}.</p>";
                 $this->result = false; return;
             }
             if (!is_null($categoria['idade_maxima']) && $categoria['idade_maxima'] !== '' && $idade > $categoria['idade_maxima']) {
-                $_SESSION['msg'] = "<p class='alert-danger'>Erro: O atleta tem {$idade} anos. A '{$categoria['nome']}' permite máximo de {$categoria['idade_maxima']}.</p>";
+                $_SESSION['msg'] = "<p class='alert-danger'>Erro: O atleta tem {$idade} anos. Máximo de {$categoria['idade_maxima']}.</p>";
                 $this->result = false; return;
             }
             if (!is_null($categoria['pontuacao_maxima']) && $categoria['pontuacao_maxima'] !== '' && $rating > $categoria['pontuacao_maxima']) {
-                $_SESSION['msg'] = "<p class='alert-danger'>Erro de Nível: O atleta tem {$rating} pts. Ele não pode descer para a '{$categoria['nome']}' (Máximo permitido: {$categoria['pontuacao_maxima']} pts).</p>";
+                $_SESSION['msg'] = "<p class='alert-danger'>Erro de Nível: O atleta tem {$rating} pts. (Máximo: {$categoria['pontuacao_maxima']} pts).</p>";
                 $this->result = false; return;
             }
 
-            // DOCAN FIX: Ao inscrever o atleta manualmente, o clube assume que a taxa está isenta ou já paga por fora.
             $dadosInscricao = [
                 'adms_competicao_id' => $compId,
                 'adms_user_id' => $userId,
                 'adms_categoria_id' => $catId,
-                'status_pagamento_id' => 3, // Status "3 = Isento / Resolvido" para não cair na malha de cobrança.
+                'status_pagamento_id' => 3, 
                 'created' => date("Y-m-d H:i:s")
             ];
             
             $create->exeCreate("adms_inscricoes", $dadosInscricao);
-            
-            if ($create->getResult()) {
-                $qtd++;
-            }
+            if ($create->getResult()) { $qtd++; }
         }
 
         if ($qtd > 0) {
-            $_SESSION['msg'] = "<p class='alert-success'>Sucesso! Atleta inscrito manualmente em {$qtd} categoria(s).</p>";
+            $_SESSION['msg'] = "<p class='alert-success'>Sucesso! Atleta adicionado à chave em {$qtd} categoria(s).</p>";
             $this->result = true;
         } else {
             $_SESSION['msg'] = "<p class='alert-danger'>Erro ou Inscrição Duplicada. Verifique os dados.</p>";
@@ -177,7 +182,7 @@ class AdmsGerenciarInscricoes
         $delete->exeDelete("adms_inscricoes", "WHERE id = :id", "id={$inscricaoId}");
 
         if ($delete->getResult()) {
-            $_SESSION['msg'] = "<p class='alert-success'>Inscrição removida com sucesso!</p>";
+            $_SESSION['msg'] = "<p class='alert-success'>Atleta removido da chave com sucesso!</p>";
             $this->result = true;
         }
     }

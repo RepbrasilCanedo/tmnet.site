@@ -4,8 +4,6 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     die("Erro: Página não encontrada<br>");
 }
 $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
-
-
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -20,7 +18,7 @@ $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
     .lider-box { background: linear-gradient(135deg, #0044cc 0%, #002266 100%); color: white; padding: 30px; border-radius: 12px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
     .lider-img { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #ffd700; object-fit: cover; }
 
-    /* Estilos Árbitro */
+    /* Estilos Árbitro & Atleta (Agenda e Histórico) */
     .arb-section-title { font-size: 16px; font-weight: bold; color: #333; margin: 20px 0 10px 0; border-left: 4px solid #ffc107; padding-left: 10px; }
     .arb-agenda-card { background: #fff; border-left: 5px solid #ffc107; border-radius: 8px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
     .arb-torneio { font-size: 12px; color: #666; font-weight: bold; text-transform: uppercase; }
@@ -34,7 +32,7 @@ $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
     .arb-hist-details strong { display: block; color: #333; font-size: 14px; }
     .arb-hist-details small { color: #888; font-size: 11px; }
 
-    /* DOCAN FIX: Estilos da Vitrine do Atleta */
+    /* Estilos da Vitrine do Atleta */
     .vitrine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 15px; }
     .vitrine-card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 15px rgba(0,0,0,0.08); border-top: 5px solid #28a745; display: flex; flex-direction: column; transition: transform 0.2s; }
     .vitrine-card:hover { transform: translateY(-5px); }
@@ -46,7 +44,7 @@ $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
     .btn-inscrever { display: block; width: 100%; background: #28a745; color: white; text-decoration: none; padding: 12px; border-radius: 6px; font-weight: bold; text-transform: uppercase; transition: 0.3s; font-size: 14px; }
     .btn-inscrever:hover { background: #218838; }
 
-    /* DOCAN FIX: Adicionado CSS das Badges de Pagamento para o Dashboard */
+    /* Badges de Pagamento para o Dashboard */
     .status-badge { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .badge-ok { background-color: #28a745; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
     .badge-warn { background-color: #ffc107; color: #333; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
@@ -113,6 +111,71 @@ $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
                     <div style="background: #fff; padding: 40px; border-radius: 8px; grid-column: 1 / -1; text-align: center; color: #888; border: 2px dashed #ddd;">
                         <i class="fa-solid fa-calendar-xmark" style="font-size: 40px; color: #ccc; margin-bottom: 15px;"></i><br>
                         Nenhum torneio com inscrições abertas no momento na plataforma.<br>Fique de olho e prepare a sua raquete!
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <h3 class="arb-section-title" style="border-left-color: #0044cc; margin-top: 40px;">⌚ Meus Próximos Jogos</h3>
+            <div style="margin-bottom: 20px;">
+                <?php if (!empty($this->data['stats']['atleta_proximos'])): ?>
+                    <?php foreach ($this->data['stats']['atleta_proximos'] as $prox): 
+                        $meuId = $_SESSION['user_id'];
+                        $souA = ($prox['atleta_a_id'] == $meuId);
+                    ?>
+                        <div class="arb-agenda-card" style="border-left-color: #0044cc;">
+                            <span class="arb-torneio"><?= $prox['nome_torneio'] ?> - <?= $prox['fase'] ?></span>
+                            
+                            <div class="arb-vs">
+                                <span <?= $souA ? 'style="color:#0044cc;"' : '' ?>><?= $prox['atleta_a'] ?></span>
+                                <span class="vs-badge">VS</span>
+                                <span <?= !$souA ? 'style="color:#0044cc;"' : '' ?>><?= $prox['atleta_b'] ?></span>
+                            </div>
+                            
+                            <div class="arb-footer">
+                                <div>
+                                    <span style="font-size: 14px; font-weight: bold; color: #0044cc; margin-right: 10px;">🏓 Mesa <?= $prox['mesa'] ?></span>
+                                    <span>⌚ <?= !empty($prox['horario_previsto']) ? date('H:i', strtotime($prox['horario_previsto'])) : 'A definir' ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div style="background: #fff; padding: 20px; text-align: center; border-radius: 8px; color: #888; font-size: 14px; border: 1px dashed #ccc;">
+                        Você não tem jogos agendados no momento.
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <h3 class="arb-section-title" style="border-left-color: #28a745; margin-top: 20px;">📜 Meu Histórico de Partidas</h3>
+            <div>
+                <?php if (!empty($this->data['stats']['atleta_historico'])): ?>
+                    <?php foreach ($this->data['stats']['atleta_historico'] as $hist): 
+                        $venci = ($hist['vencedor_id'] == $_SESSION['user_id']);
+                        $corBorda = $venci ? '#28a745' : '#dc3545';
+                    ?>
+                        <div class="arb-hist-item" style="border-left-color: <?= $corBorda ?>;">
+                            <?php if($hist['is_wo'] == 1): ?>
+                                <div class="arb-hist-result" style="background: <?= $corBorda ?>; font-size: 12px; padding: 5px;">W.O.</div>
+                            <?php else: ?>
+                                <div class="arb-hist-result" style="background: <?= $corBorda ?>;"><?= $hist['sets_atleta_a'] ?> x <?= $hist['sets_atleta_b'] ?></div>
+                            <?php endif; ?>
+                            
+                            <div class="arb-hist-details">
+                                <strong><?= $hist['atleta_a'] ?> vs <?= $hist['atleta_b'] ?></strong>
+                                <small><?= $hist['nome_torneio'] ?> (<?= $hist['fase'] ?>)</small>
+                            </div>
+                            <div>
+                                <?php if($venci): ?>
+                                    <span style="color: #28a745; font-weight: bold; font-size: 12px;"><i class="fa-solid fa-trophy"></i> Vitória</span>
+                                <?php else: ?>
+                                    <span style="color: #dc3545; font-weight: bold; font-size: 12px;"><i class="fa-solid fa-xmark"></i> Derrota</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div style="background: #fff; padding: 20px; text-align: center; border-radius: 8px; color: #888; font-size: 14px; border: 1px dashed #ccc;">
+                        Você ainda não disputou nenhuma partida na plataforma.
                     </div>
                 <?php endif; ?>
             </div>

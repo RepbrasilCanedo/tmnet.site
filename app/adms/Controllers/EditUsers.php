@@ -7,36 +7,15 @@ if(!defined('D0O8C0A3N1E9D6O1')){
     die("Erro: Página não encontrada<br>");
 }
 
-/**
- * Controller editar usuário
- * @author Daniel Canedo - docan2006@gmail.com
- */
 class EditUsers
 {
-
-    /** @var array|string|null $data Recebe os dados que devem ser enviados para VIEW */
     private array|string|null $data = [];
-
-    /** @var array $dataForm Recebe os dados do formulario */
     private array|null $dataForm;
-
-    /** @var int|string|null $id Recebe o id do registro */
     private int|string|null $id;
 
-    /**
-     * Método editar usuário.
-     * Receber os dados do formulário.
-     * 
-     * Se o parâmetro ID e diferente de vazio e o usuário não clicou no botão editar, instancia a MODELS para recuperar as informações do usuário no banco de dados, se encontrar instancia o método "viewEditUser". Se não existir redireciona para o listar usuários.
-     * 
-     * Se não existir o usuário clicar no botão acessa o ELSE e instancia o método "editUser".
-     * 
-     * @return void
-     */
     public function index(int|string|null $id = null): void
     {   
         $this->dataForm = filter_input_array(INPUT_POST, FILTER_DEFAULT);
-
 
         if ((!empty($id)) and (empty($this->dataForm['SendEditUser']))) {
             $this->id = (int) $id;
@@ -50,6 +29,7 @@ class EditUsers
             } else {
                 $urlRedirect = URLADM . "list-users/index";
                 header("Location: $urlRedirect");
+                exit; // DOCAN FIX
             } 
         
         } else {
@@ -57,21 +37,17 @@ class EditUsers
         }
     }
 
-    /**
-     * Instanciar a MODELS e o método "listSelect" responsável em buscar os dados para preencher o campo SELECT 
-     * Instanciar a classe responsável em carregar a View e enviar os dados para View.
-     * 
-     */
     private function viewEditUser(): void
     {
-        $button = ['list_users' => ['menu_controller' => 'list-users', 'menu_metodo' => 'index'],
-        'view_users' => ['menu_controller' => 'view-users', 'menu_metodo' => 'index'],
-        'del_clie_user' => ['menu_controller' => 'del-clie-user', 'menu_metodo' => 'index']];
+        $button = [
+            'list_users' => ['menu_controller' => 'list-users', 'menu_metodo' => 'index'],
+            'view_users' => ['menu_controller' => 'view-users', 'menu_metodo' => 'index'],
+            'del_clie_user' => ['menu_controller' => 'del-clie-user', 'menu_metodo' => 'index']
+        ];
         
         $listBotton = new \App\adms\Models\helper\AdmsButton();
         $this->data['button'] = $listBotton->buttonPermission($button);
 
-                
         $listSelect = new \App\adms\Models\AdmsEditUsers();
         $this->data['select'] = $listSelect->listSelect();
 
@@ -83,14 +59,6 @@ class EditUsers
         $loadView->loadView();
     }
 
-    /**
-     * Editar usuario.
-     * Se o usuário clicou no botão, instancia a MODELS responsável em receber os dados e editar no banco de dados.
-     * Verifica se editou corretamente o usuário no banco de dados.
-     * Se o usuário não clicou no botão redireciona para página listar usuarios.
-     *
-     * @return void
-     */
     private function editUser(): void
     {
         if (!empty($this->dataForm['SendEditUser'])) {
@@ -102,6 +70,7 @@ class EditUsers
             if($editUser->getResult()){
                 $urlRedirect = URLADM . "view-users/index/" . $this->dataForm['id'];
                 header("Location: $urlRedirect");
+                exit; // DOCAN FIX
             }else{
                 $this->data['form'] = $this->dataForm;
                 $this->viewEditUser();
@@ -110,6 +79,7 @@ class EditUsers
             $_SESSION['msg'] = "<p class='alert-danger'>Erro: Usuário não encontrado!</p>";
             $urlRedirect = URLADM . "list-users/index";
             header("Location: $urlRedirect");
+            exit; // DOCAN FIX
         }
     }
 }

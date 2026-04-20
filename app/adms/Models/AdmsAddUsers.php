@@ -59,19 +59,47 @@ class AdmsAddUsers
 
         $this->data['password'] = password_hash($this->data['password'], PASSWORD_DEFAULT);
         $this->data['conf_email'] = password_hash($this->data['password'] . date("Y-m-d H:i:s"), PASSWORD_DEFAULT);
-        if ($_SESSION['adms_access_level_id'] > 2) {
-            $this->data['empresa_id'] = $_SESSION['emp_user'];
-        }        
         $this->data['created'] = date("Y-m-d H:i:s");
+
+        // ========================================================================
+        // DOCAN FIX: LÓGICA DE FILIAÇÃO (N:N) - ATLETAS vs GESTORES
+        // ========================================================================
+        $clubeId = 1; // Default TMNet
+        if ($_SESSION['adms_access_level_id'] > 2) {
+            $clubeId = $_SESSION['emp_user']; // Clube adicionando
+        } elseif (!empty($this->data['empresa_id'])) {
+            $clubeId = $this->data['empresa_id']; // S-Admin adicionando (escolheu no select)
+        }
+
+        // Se for Atleta (14), ele pertence à TMNet (1). Se for gestor, pertence ao Clube ($clubeId)
+        if (isset($this->data['adms_access_level_id']) && $this->data['adms_access_level_id'] == 14) {
+            $this->data['empresa_id'] = 1;
+        } else {
+            $this->data['empresa_id'] = $clubeId;
+        }
 
         $createUser = new \App\adms\Models\helper\AdmsCreate();
         $createUser->exeCreate("adms_users", $this->data);
 
         if ($createUser->getResult()) {
-            $_SESSION['msg'] = "<p class='alert-success'>Usuário cadastrado com sucesso!</p>";
+            // Pega o ID do novo usuário gerado pelo banco
+            $novoUserId = $createUser->getResult();
+
+            // Se for um atleta e estivermos vinculando a um clube real (não a TMNet pura)
+            if (isset($this->data['adms_access_level_id']) && $this->data['adms_access_level_id'] == 14 && $clubeId != 1) {
+                $dadosClubeAtleta = [
+                    'adms_user_id' => $novoUserId,
+                    'empresa_id' => $clubeId,
+                    'created' => date("Y-m-d H:i:s")
+                ];
+                $createRel = new \App\adms\Models\helper\AdmsCreate();
+                $createRel->exeCreate("adms_atleta_clube", $dadosClubeAtleta);
+            }
+
+            $_SESSION['msg'] = "<p class='alert-success'>Colaborador/Atleta cadastrado com sucesso!</p>";
             $this->result = true;
         } else {
-            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Usuário não cadastrado com sucesso!</p>";
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Usuário não cadastrado!</p>";
             $this->result = false;
         }
     }

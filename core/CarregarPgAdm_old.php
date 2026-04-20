@@ -12,7 +12,7 @@ if(!defined('D0O8C0A3N1E9D6O1')){
  * @author Daniel Canedo - docan2006@gmail.com
  */
 
-class CarregarPgAdm
+class CarregarPgAdm_old
 {
     /** @var string $urlController Recebe da URL o nome da controller */
     private string $urlController;
@@ -96,7 +96,8 @@ class CarregarPgAdm
      *
      * @return void
      */
-    private function pgPrivate():void
+   
+private function pgPrivate():void
     {
         $this->listPgPrivate = ["Dashboard", "ListUsers", "ViewUsers", "AddUsers", "EditUsers", "EditUsersPassword", "EditUsersImage", "DeleteUsers", "ViewProfile", "EditProfile", "EditProfilePassword", "EditProfileImage", "ListSitsUsers", "ViewSitsUsers", "AddSitsUsers", "EditSitsUsers", "DeleteSitsUsers", "ListColors", "ViewColors", "AddColors", "EditColors", "DeleteColors", "ListConfEmails", "ViewConfEmails", "AddConfEmails", "EditConfEmails", "EditConfEmailsPassword", "DeleteConfEmails", "ListAccessLevels", "ViewAccessLevels", "AddAccessLevels", "EditAccessLevels", "DeleteAccessLevels", "OrderAccessLevels", "ListSitsPages", "ViewSitsPages", "AddSitsPages", "EditSitsPages", "DeleteSitsPages", "ListGroupsPages", "ViewGroupsPages", "AddGroupsPages", "EditGroupsPages", "DeleteGroupsPages", "OrderGroupsPages", "ListTypesPages", "ViewTypesPages", "AddTypesPages", "EditTypesPages", "DeleteTypesPages", "OrderTypesPages", "ListPages", "ViewPages", "AddPages", "EditPages", "DeletePages", "ListPermission", "SyncPagesLevels", "EditPermission"];
         if(in_array($this->urlController, $this->listPgPrivate)){
@@ -107,6 +108,8 @@ class CarregarPgAdm
             header("Location: $urlRedirect");
         }
     }
+       
+
 
     /**
      * Verificar se o usuário está logado e carregar a página

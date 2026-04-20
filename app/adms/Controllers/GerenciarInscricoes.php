@@ -45,6 +45,9 @@ class GerenciarInscricoes
         $this->data['disponiveis'] = $gerenciar->getDisponiveis();
         $this->data['categorias_torneio'] = $gerenciar->getCategoriasTorneio();
         
+        // DOCAN FIX: Passa a contagem de pendentes para a View
+        $this->data['pendentes'] = $gerenciar->getPendentes();
+        
         $readComp = new \App\adms\Models\helper\AdmsRead();
         $readComp->fullRead("SELECT data_evento FROM adms_competicoes WHERE id = :id LIMIT 1", "id={$this->id}");
         $this->data['data_evento'] = $readComp->getResult()[0]['data_evento'] ?? date('Y-m-d');

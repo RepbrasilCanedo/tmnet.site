@@ -23,15 +23,17 @@ class Dashboard
 
         if ($nivelAcesso === 14) {
             // ==========================================================
-            // VISÃO DO ATLETA (Vitrine de Competições)
+            // VISÃO DO ATLETA (Vitrine de Competições + Agenda)
             // ==========================================================
             $this->data['sidebarActive'] = "dashboard"; 
             
             $vitrine = new \App\adms\Models\AdmsDashboard();
-            // DOCAN FIX: Passando o ID do Atleta para a Model procurar as inscrições dele
+            // DOCAN FIX: Busca a vitrine e a agenda do atleta
             $vitrine->getVitrineCompeticoes($userId); 
+            $vitrine->getEstatisticasAtleta($userId); 
             
             $this->data['vitrine'] = $vitrine->getResult()['vitrine'] ?? [];
+            $this->data['stats'] = $vitrine->getResult(); // Passa a agenda e histórico
             
             $loadView = new \Core\ConfigView("adms/Views/dashboard/dashboard", $this->data);
             $loadView->loadView();

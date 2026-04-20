@@ -26,8 +26,8 @@ class AdmsNovoCredenciamento
         }
 
         // CHAVE SECRETA DE TESTE LOCAL (Trocar na nuvem)
-        $secretKey = "6Ld9RrAsAAAAAKrEK7bPB7JU3fH4N3ogAn9Dt1Di";
-        //$secretKey = "6LckDq0sAAAAAG7vfCcNmoK4qcFroB2lDbdRiZb9"; --- captcha Nuvem
+        //$secretKey = "6Ld9RrAsAAAAAKrEK7bPB7JU3fH4N3ogAn9Dt1Di"; captcha local host
+        $secretKey = "6LckDq0sAAAAAG7vfCcNmoK4qcFroB2lDbdRiZb9"; 
 
         
         $curl = curl_init();
@@ -97,7 +97,7 @@ class AdmsNovoCredenciamento
         $create->exeCreate("adms_users", $this->data);
 
         if ($create->getResult()) {
-            $_SESSION['msg'] = "<div class='alert-success'>✅ Conta Criada! O seu pedido de registo na Plataforma TMNet foi enviado com sucesso e está em análise.</div>";
+            $_SESSION['msg'] = "<div class='alert-success'>✅ Conta Criada! O seu pedido de registo na Plataforma TMNet foi enviado com sucesso e está em análise. Você recebera um WhastApp confirmando seu cadastro.</div>";
             $this->result = true;
         } else {
             $_SESSION['msg'] = "<div class='alert-danger'>Erro: Falha ao solicitar credenciamento. Tente novamente mais tarde.</div>";

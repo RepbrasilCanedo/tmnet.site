@@ -24,6 +24,7 @@ class AddUsers
             if($createUser->getResult()){
                 $urlRedirect = URLADM . "list-users/index";
                 header("Location: $urlRedirect");
+                exit; // DOCAN FIX: Evitar erro de loop
             }else{
                 $this->data['form'] = $this->dataForm;
                 $this->viewAddUser();

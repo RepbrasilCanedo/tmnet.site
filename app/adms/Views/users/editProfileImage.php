@@ -13,7 +13,6 @@ if (isset($this->data['form'][0])) {
     $valorForm = $this->data['form'][0];
 }
 ?>
-<!-- Inicio do conteudo do administrativo -->
 <div class="dash-wrapper">
     <div class="row">
         <div class="top-list">
@@ -48,8 +47,9 @@ if (isset($this->data['form'][0])) {
                             $name = $valorForm['name'];
                         }
                         ?>
-                        <label class="title-input">Imagem:<span class="text-danger">*</span> 300x300</label>
-                        <input type="file" name="new_image" id="new_image" class="input-adm" onchange="inputFileValImg()">
+                        <label class="title-input">Imagem do Perfil:<span class="text-danger">*</span> (Tire uma foto ou escolha da galeria)</label>
+                        
+                        <input type="file" name="new_image" id="new_image" class="input-adm" accept="image/*" capture="user" onchange="inputFileValImg()">
                     </div>
                     <div class="column">
                         <?php
@@ -60,7 +60,7 @@ if (isset($this->data['form'][0])) {
                         }
                         ?>
                         <span id="preview-img-avatar">
-                            <img src="<?php echo $old_image; ?>" alt="Imagem" style="width: 100px; height: 100px;">
+                            <img src="<?php echo $old_image; ?>" alt="Imagem" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
                         </span>
                     </div>
                 </div>
@@ -73,4 +73,3 @@ if (isset($this->data['form'][0])) {
         </div>
     </div>
 </div>
-<!-- Fim do conteudo do administrativo -->

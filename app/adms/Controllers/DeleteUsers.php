@@ -39,6 +39,6 @@ class DeleteUsers
 
         $urlRedirect = URLADM . "list-users/index";
         header("Location: $urlRedirect");
-
+        exit; // DOCAN FIX: Paragem obrigatória na execução do header
     }
 }

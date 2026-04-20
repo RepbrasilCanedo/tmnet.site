@@ -20,37 +20,16 @@ class AdmsEditProfileImage
     private string|null $directory;
     private string|null $delImg;
 
-    /** @var bool $result Recebe true quando executar o processo com sucesso e false quando houver erro */
     private bool $result = false;
-
-    /** @var array|null $resultBd Recebe os registros do banco de dados */
     private array|null $resultBd;
 
-    /**
-     * @return bool Retorna true quando executar o processo com sucesso e false quando houver erro
-     */
-    function getResult(): bool
-    {
-        return $this->result;
-    }
+    function getResult(): bool { return $this->result; }
+    function getResultBd(): array|null { return $this->resultBd; }
 
-    /**
-     * @return bool Retorna os detalhes do registro
-     */
-    function getResultBd(): array|null
-    {
-        return $this->resultBd;
-    }
-
-    /**
-     * Metodo para pesquisar a imagem do usuário que será editada
-     * @return boolean
-     */
     public function viewProfile(): bool
     {
-            $viewUser = new \App\adms\Models\helper\AdmsRead();
-            $viewUser->fullRead("SELECT id, imagem FROM adms_users WHERE id=:id LIMIT :limit", "id=" . $_SESSION['user_id'] . "&limit=1");
- 
+        $viewUser = new \App\adms\Models\helper\AdmsRead();
+        $viewUser->fullRead("SELECT id, imagem FROM adms_users WHERE id=:id LIMIT :limit", "id=" . $_SESSION['user_id'] . "&limit=1");
 
         $this->resultBd = $viewUser->getResult();
         if ($this->resultBd) {
@@ -63,20 +42,9 @@ class AdmsEditProfileImage
         }
     }
 
-    /**
-     * Metodo recebe a informação da imagem que será editada
-     * Instancia o helper AdmsValEmptyField para validar os campos do formulário
-     * Retira o campo "new_image" da validação
-     * Chama o metodo valInput para validar a extensão da imagem     
-     * @param array|null $data
-     * @return void
-     */
     public function update(array $data): void
     {
         $this->data = $data;
-
-        //echo "<pre>";var_dump($this->data );
-
         $this->dataImagem = $this->data['new_image'];
         unset($this->data['new_image']);
 
@@ -95,12 +63,6 @@ class AdmsEditProfileImage
         }
     }
 
-    /** 
-     * Valida a extensão da imagem com o helper AdmsValExtImg
-     * Retorna FALSE quando houve algum erro
-     * 
-     * @return void
-     */
     private function valInput(): void
     {
         $valExtImg = new \App\adms\Models\helper\AdmsValExtImg();
@@ -113,18 +75,61 @@ class AdmsEditProfileImage
         }
     }
 
-    /**
-     * Metodo gera o slug da imagem com o helper AdmsSlug
-     * Faz o upload da imagem usando o helper AdmsUploadImgRes
-     * Chama o metodo edit para atualizar as informações no banco de dados
-     * @return void
-     */
+    // ========================================================================
+    // DOCAN FIX: Função para ler o EXIF do telemóvel e girar a foto
+    // ========================================================================
+    private function fixExifRotation(string $filePath, string $mimeType): void
+    {
+        if (!function_exists('exif_read_data')) {
+            return;
+        }
+
+        // As fotos de telemóvel vêm sempre em JPEG
+        if ($mimeType === 'image/jpeg' || $mimeType === 'image/jpg' || $mimeType === 'image/pjpeg') {
+            $exif = @exif_read_data($filePath);
+            
+            if (!empty($exif['Orientation'])) {
+                $image = @imagecreatefromjpeg($filePath);
+                if ($image) {
+                    $rotated = false;
+                    switch ($exif['Orientation']) {
+                        case 3:
+                            $image = imagerotate($image, 180, 0);
+                            $rotated = true;
+                            break;
+                        case 6:
+                            // Modo retrato tradicional (gira -90 graus)
+                            $image = imagerotate($image, -90, 0);
+                            $rotated = true;
+                            break;
+                        case 8:
+                            $image = imagerotate($image, 90, 0);
+                            $rotated = true;
+                            break;
+                    }
+                    // Se foi girada, salva por cima do ficheiro temporário
+                    if ($rotated) {
+                        imagejpeg($image, $filePath, 100);
+                    }
+                    imagedestroy($image);
+                }
+            }
+        }
+    }
+
     private function upload(): void
     {
         $slugImg = new \App\adms\Models\helper\AdmsSlug();
         $this->nameImg = $slugImg->slug($this->dataImagem['name']);
 
         $this->directory = "app/adms/assets/image/users/" . $_SESSION['user_id'] . "/";
+        
+        if (!file_exists($this->directory)) {
+            mkdir($this->directory, 0777, true);
+        }
+
+        // DOCAN FIX: Arruma a foto deitada ANTES de cortar
+        $this->fixExifRotation($this->dataImagem['tmp_name'], $this->dataImagem['type']);
 
         $uploadImgRes = new \App\adms\Models\helper\AdmsUploadImgRes();
         $uploadImgRes->upload($this->dataImagem, $this->directory, $this->nameImg, 300, 300);
@@ -136,12 +141,6 @@ class AdmsEditProfileImage
         }
     }
 
-    /**
-     * Metodo envia as informações editadas para o banco de dados
-     * Chama o metodo deleteImage apagar a imagem antiga do usuário
-     *
-     * @return void
-     */
     private function edit(): void
     {
         $this->data['imagem'] = $this->nameImg;
@@ -159,10 +158,6 @@ class AdmsEditProfileImage
         }
     }
 
-    /**
-     * Metodo apaga a imagem antiga do usuário
-     * @return void
-     */
     private function deleteImage(): void
     {
         if (((!empty($this->resultBd[0]['imagem'])) or ($this->resultBd[0]['imagem'] != null)) and ($this->resultBd[0]['imagem'] != $this->nameImg)) {
@@ -172,7 +167,7 @@ class AdmsEditProfileImage
             }
         }
 
-        $_SESSION['msg'] = "<p class='alert-success'>Imagem editada com sucesso!</p>";
+        $_SESSION['msg'] = "<p class='alert-success'>Imagem atualizada com sucesso!</p>";
         $this->result = true;
     }
 }

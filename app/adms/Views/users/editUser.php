@@ -110,6 +110,10 @@ if (isset($this->data['form'][0])) {
                                 <option value="Ambidestro" <?= (isset($valorForm['mao_dominante']) && $valorForm['mao_dominante'] == 'Ambidestro') ? 'selected' : '' ?>>Ambidestro</option>
                             </select>
                         </div>
+                        <div class="column">
+                            <label class="title-input">Pontuação Ranking:</label>
+                            <input type="number" name="pontuacao_ranking" id="pontuacao_ranking" class="input-adm" placeholder="0" value="<?php echo $valorForm['pontuacao_ranking'] ?? '0'; ?>">
+                        </div>
                     </div>
                 </div>
 

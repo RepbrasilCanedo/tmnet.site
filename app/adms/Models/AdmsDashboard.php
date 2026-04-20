@@ -127,7 +127,7 @@ class AdmsDashboard
         $this->result['arbitro_historico'] = $read->getResult();
     }
 
-// ========================================================================
+    // ========================================================================
     // DOCAN ENGINE: VITRINE DE COMPETIÇÕES PARA ATLETAS (COM LOGO E STATUS)
     // ========================================================================
     public function getVitrineCompeticoes(int $userId): void
@@ -172,5 +172,47 @@ class AdmsDashboard
         }
 
         $this->result['vitrine'] = $torneios;
+    }
+
+    // ========================================================================
+    // DOCAN FIX: DEVOLVENDO A AGENDA E HISTÓRICO DO ATLETA
+    // ========================================================================
+    public function getEstatisticasAtleta(int $userId): void
+    {
+        $read = new \App\adms\Models\helper\AdmsRead();
+        
+        // Próximos Jogos do Atleta
+        $read->fullRead(
+            "SELECT p.id, p.mesa, p.horario_previsto, p.fase, p.adms_competicao_id,
+                    p.atleta_a_id, p.atleta_b_id,
+                    ua.name as atleta_a, ub.name as atleta_b, 
+                    c.nome_torneio, c.data_evento 
+             FROM adms_partidas p
+             INNER JOIN adms_competicoes c ON c.id = p.adms_competicao_id
+             INNER JOIN adms_users ua ON ua.id = p.atleta_a_id
+             INNER JOIN adms_users ub ON ub.id = p.atleta_b_id
+             WHERE (p.atleta_a_id = :user_id OR p.atleta_b_id = :user_id) 
+             AND p.status_partida = 'Agendado'
+             ORDER BY c.data_evento ASC, p.horario_previsto ASC",
+            "user_id={$userId}"
+        );
+        $this->result['atleta_proximos'] = $read->getResult();
+
+        // Histórico de Partidas do Atleta
+        $read->fullRead(
+            "SELECT p.id, p.fase, p.sets_atleta_a, p.sets_atleta_b, p.vencedor_id, p.is_wo,
+                    p.atleta_a_id, p.atleta_b_id,
+                    ua.name as atleta_a, ub.name as atleta_b, 
+                    c.nome_torneio 
+             FROM adms_partidas p
+             INNER JOIN adms_competicoes c ON c.id = p.adms_competicao_id
+             INNER JOIN adms_users ua ON ua.id = p.atleta_a_id
+             INNER JOIN adms_users ub ON ub.id = p.atleta_b_id
+             WHERE (p.atleta_a_id = :user_id OR p.atleta_b_id = :user_id) 
+             AND p.status_partida = 'Finalizado'
+             ORDER BY p.id DESC LIMIT 10",
+            "user_id={$userId}"
+        );
+        $this->result['atleta_historico'] = $read->getResult();
     }
 }

@@ -2,6 +2,13 @@
 Options -MultiViews
 RewriteEngine On
 
+# =======================================================================
+# DOCAN FIX: FORÇAR SITE SEM "WWW" (O Matador de Sessões Fantasmas)
+# Se alguém digitar www.tmnet.site, o servidor muda na hora para tmnet.site
+# =======================================================================
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
 # --- CORREÇÃO 1: FORÇAR HTTPS (Automático / Inteligente) ---
 # A regra abaixo diz: "Se NÃO for localhost E o HTTPS estiver desligado, redirecione".
 

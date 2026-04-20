@@ -46,7 +46,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                         if ((!empty($logo_emp)) and (file_exists("app/adms/assets/image/logo/clientes/$id/$logo_emp"))) {
                             echo "<img src='" . URLADM . "app/adms/assets/image/logo/clientes/$id/$logo_emp' width='100' height='100'><br><br>";
                         } else {
-                            echo "<img src='" . URLADM . "app/adms/assets/image/logo/clientes/icon_user.png' width='100' height='100'><br><br>";
+                            echo "<img src='" . URLADM . "app/adms/assets/image/logo/clientes/logo_padrao.png' width='100' height='100'><br><br>";
                         }
                         
                         ?>

@@ -13,36 +13,24 @@ if(!defined('D0O8C0A3N1E9D6O1')){
  */
 class EditProfileLogo
 {
-
-    /** @var array|string|null $data Recebe os dados que devem ser enviados para VIEW */
     private array|string|null $data = [];
-
-    /** @var array $dataForm Recebe os dados do formulario */
     private array|null $dataForm;
 
-    /** @var int|string|null $id Recebe o id do registro */
-    private int|string|null $id;
-
-    /**
-     * Método editar imagem do perfil.
-     * Receber os dados do formulário.
-     * 
-     * Quando o usuário clicar no botão "editar" do formulário da página editar imagem do perfil. Acessa o IF e instância o método "AdmsEditProfileImage".
-     * Senão, instancia a MODELS e recupera os dados do perfil do usuário no banco de dados.
-     * 
-     * Existindo o usuário no banco de dados, recebe os dados do perfil e instancia o método viewEditProfImagem.
-     * Senão redireciona o usuário para página de login
-     * 
-     * @return void
-     */
     public function index(int|string|null $id = null): void
     {
-
-        $this->id = (int) $id;
-        $_SESSION['emp_logo']='';
-        $_SESSION['emp_logo'] = $this->id;
-
         $this->dataForm = filter_input_array(INPUT_POST, FILTER_DEFAULT);  
+
+        // =========================================================================
+        // DOCAN FIX BLINDADO: Gestão Inteligente do ID da Empresa
+        // Não destrói a sessão ao salvar. Garante que a imagem vai para a pasta certa!
+        // =========================================================================
+        if (!empty($id)) {
+            // Se veio um ID na URL, atualiza a sessão (Admin a editar outro clube)
+            $_SESSION['emp_logo'] = (int)$id;
+        } elseif (empty($_SESSION['emp_logo']) && !empty($_SESSION['emp_user'])) {
+            // Se não veio ID e a sessão está vazia, assume que é o próprio clube logado
+            $_SESSION['emp_logo'] = (int)$_SESSION['emp_user'];
+        }
 
         if (!empty($this->dataForm['SendEditProfLogo'])) {
            $this->editProfLogo();
@@ -56,14 +44,11 @@ class EditProfileLogo
             } else {
                 $urlRedirect = URLADM . "list-emp-principal/index";
                 header("Location: $urlRedirect");
+                exit;
             }
         }
     }
 
-    /**
-     * Instanciar a classe responsável em carregar a View e enviar os dados para View.
-     * 
-     */
     private function viewEditProfLogo(): void
     {
         $button = ['view_profile' => ['menu_controller' => 'view-profile', 'menu_metodo' => 'index']];
@@ -78,14 +63,6 @@ class EditProfileLogo
         $loadView->loadView();
     }
 
-    /**
-     * Editar imagem do perfil.
-     * Se o usuário clicou no botão, instancia a MODELS responsável em receber os dados e editar no banco de dados.
-     * Verifica se editou corretamente o perfil no banco de dados.
-     * Se o usuário não clicou no botão redireciona para página de login.
-     *
-     * @return void
-     */
     private function editProfLogo(): void
     {
         if (!empty($this->dataForm['SendEditProfLogo'])) {
@@ -98,14 +75,16 @@ class EditProfileLogo
             if ($editProfImg->getResult()) {
                 $urlRedirect = URLADM . "list-emp-principal/index";
                 header("Location: $urlRedirect");
+                exit;
             } else {
                 $this->data['form'] = $this->dataForm;
                 $this->viewEditProfLogo();
             }
         } else {
-            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Logo não encontrado!</p>";
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Logo não encontrada!</p>";
             $urlRedirect = URLADM . "login/index";
             header("Location: $urlRedirect");
+            exit;
         }
     }
 }
