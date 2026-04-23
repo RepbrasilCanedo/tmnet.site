@@ -34,19 +34,53 @@ class AdmsEditCompeticao
         $id = (int)$dados['id'];
         unset($dados['id'], $dados['SendEditComp']);
 
+        // ========================================================================
+        // DOCAN ENGINE: Tratamento do Upload do PDF do Regulamento
+        // ========================================================================
+        $arquivoPdf = $dados['regulamento'] ?? null;
+        unset($dados['regulamento']); // Tira do array para não quebrar o Update padrão
+
+        if (!empty($arquivoPdf['name'])) {
+            // Verifica se é realmente um PDF
+            if ($arquivoPdf['type'] === 'application/pdf') {
+                
+                $slug = new \App\adms\Models\helper\AdmsSlug();
+                $nomeOriginalSemExtensao = pathinfo($arquivoPdf['name'], PATHINFO_FILENAME);
+                $nomeArquivoPadronizado = $slug->slug($nomeOriginalSemExtensao) . '.pdf';
+                
+                $diretorio = "app/adms/assets/arquivos/competicao/" . $id . "/";
+                
+                // Cria a pasta se ela não existir
+                if (!file_exists($diretorio)) {
+                    mkdir($diretorio, 0755, true);
+                }
+                
+                // Move o arquivo para o servidor
+                if (move_uploaded_file($arquivoPdf['tmp_name'], $diretorio . $nomeArquivoPadronizado)) {
+                    $dados['regulamento'] = $nomeArquivoPadronizado; // Adiciona ao array para ir para o Banco de Dados
+                } else {
+                    $_SESSION['msg'] = "<p class='alert-danger'>Erro: Falha ao fazer o upload do PDF no servidor.</p>";
+                    $this->status = false;
+                    return;
+                }
+            } else {
+                $_SESSION['msg'] = "<p class='alert-danger'>Erro: O regulamento deve ser estritamente um arquivo formato PDF.</p>";
+                $this->status = false;
+                return;
+            }
+        }
+
         if (isset($dados['categorias_selecionadas'])) {
             $dados['categorias_selecionadas'] = implode(',', $dados['categorias_selecionadas']);
         } else {
             $dados['categorias_selecionadas'] = null;
         }
 
-        // Força os campos de pontuação vazios a virarem ZERO na edição.
         $camposPontuacao = ['pts_campeao', 'pts_vice', 'pts_terceiro', 'pts_quartas', 'pts_vitoria_jogo', 'pts_derrota_jogo', 'pts_participacao'];
         foreach($camposPontuacao as $cp){
             $dados[$cp] = empty($dados[$cp]) ? 0 : (int)$dados[$cp];
         }
 
-        // DOCAN FIX: Tratamento dos Valores Financeiros (Substitui vírgula por ponto para o SQL)
         if(isset($dados['valor_uma_categoria'])) {
             $dados['valor_uma_categoria'] = empty($dados['valor_uma_categoria']) ? 0.00 : str_replace(',', '.', $dados['valor_uma_categoria']);
         }
@@ -59,7 +93,8 @@ class AdmsEditCompeticao
         $up = new \App\adms\Models\helper\AdmsUpdate();
         $up->exeUpdate("adms_competicoes", $dados, "WHERE id = :id AND empresa_id = :empresa", "id={$id}&empresa={$_SESSION['emp_user']}");
 
-        if ($up->getResult()) {
+        // Se o upload funcionou ou se houveram outras atualizações, confirma sucesso.
+        if ($up->getResult() || !empty($arquivoPdf['name'])) {
             $_SESSION['msg'] = "<p class='alert-success'>Sucesso: Competição atualizada com sucesso!</p>";
             $this->status = true;
         } else {

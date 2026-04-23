@@ -22,14 +22,20 @@ class AdmsPainelJogos
 
         // 1. Verifica se o torneio já acabou por completo (Zero jogos pendentes)
         $read->fullRead("SELECT id FROM adms_partidas WHERE adms_competicao_id = :comp_id AND (vencedor_id IS NULL OR vencedor_id = 0) LIMIT 1", "comp_id={$compId}");
-        $isFinished = empty($read->getResult()); // True se não houver jogos pendentes
+        $isFinished = empty($read->getResult()); 
         
-        // 2. Busca os jogos em andamento nas mesas
+        // ========================================================================
+        // DOCAN FIX: Busca os jogos e agora puxa todos os dados do Placar (Sets e Pontos)
+        // ========================================================================
         $read->fullRead(
             "SELECT p.id, p.mesa, p.status_partida, p.fase, p.horario_previsto, 
                     COALESCE(ua.name, 'A Definir') as atleta_a, 
                     COALESCE(ub.name, 'A Definir') as atleta_b, 
-                    cat.nome as cat_nome
+                    cat.nome as cat_nome,
+                    p.sets_atleta_a, p.sets_atleta_b,
+                    p.pts_set1_a, p.pts_set1_b, p.pts_set2_a, p.pts_set2_b,
+                    p.pts_set3_a, p.pts_set3_b, p.pts_set4_a, p.pts_set4_b,
+                    p.pts_set5_a, p.pts_set5_b
              FROM adms_partidas p
              LEFT JOIN adms_users ua ON ua.id = p.atleta_a_id
              LEFT JOIN adms_users ub ON ub.id = p.atleta_b_id
@@ -47,6 +53,24 @@ class AdmsPainelJogos
 
         foreach ($jogosGerais as $jogo) {
             if (!in_array($jogo['mesa'], $mesasOcupadas)) {
+                
+                // DOCAN LÓGICA: Descobre qual é o set atual que está a ser disputado!
+                $ptsA = 0; $ptsB = 0; $setAtual = 1;
+                for ($i = 5; $i >= 1; $i--) {
+                    if ($jogo["pts_set{$i}_a"] !== null || $jogo["pts_set{$i}_b"] !== null) {
+                        $ptsA = (int)$jogo["pts_set{$i}_a"];
+                        $ptsB = (int)$jogo["pts_set{$i}_b"];
+                        $setAtual = $i;
+                        break;
+                    }
+                }
+                
+                $jogo['pts_a'] = $ptsA;
+                $jogo['pts_b'] = $ptsB;
+                $jogo['set_atual'] = $setAtual;
+                $jogo['sets_atleta_a'] = (int)($jogo['sets_atleta_a'] ?? 0);
+                $jogo['sets_atleta_b'] = (int)($jogo['sets_atleta_b'] ?? 0);
+
                 $jogosNoPainel[] = $jogo;
                 $mesasOcupadas[] = $jogo['mesa'];
             }
@@ -76,7 +100,6 @@ class AdmsPainelJogos
         foreach ($jogosDecisivos as $jogo) {
             $catNomeBase = !empty($jogo['cat_nome']) ? $jogo['cat_nome'] : 'Livre';
             
-            // Define o Gênero para separar o pódio corretamente
             $tipoGenero = $jogo['tipo_genero'] ?? 1;
             $genNome = 'Misto';
             if ($tipoGenero == 2) {
@@ -100,7 +123,6 @@ class AdmsPainelJogos
                 $podiosPorCategoria[$catNomeCompleto]['campeao'] = $campeao;
                 $podiosPorCategoria[$catNomeCompleto]['vice'] = $vice;
             } elseif ($jogo['fase'] == 'Semifinal') {
-                // O perdedor da semifinal é o 3º lugar
                 $terceiro = ($jogo['vencedor_id'] == $jogo['atleta_a_id']) ? $jogo['atleta_b'] : $jogo['atleta_a'];
                 $podiosPorCategoria[$catNomeCompleto]['terceiros'][] = $terceiro;
             }

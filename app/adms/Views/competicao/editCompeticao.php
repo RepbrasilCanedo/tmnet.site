@@ -35,7 +35,7 @@ $categoriasSelecionadas = $valorForm['categorias_selecionadas'] ?? [];
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="" class="form-adm">
+            <form method="POST" action="" class="form-adm" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="<?= $valorForm['id'] ?? '' ?>">
 
                 <div class="row-input">
@@ -175,9 +175,27 @@ $categoriasSelecionadas = $valorForm['categorias_selecionadas'] ?? [];
                     </div>
                 </div>
 
+                <div style="background: #fafafa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+                    <h5 style="margin-top: 0; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px;"><i class="fa-solid fa-file-pdf" style="color:#dc3545;"></i> Anexar Regulamento (PDF)</h5>
+                    <div class="row-input">
+                        <div class="column">
+                            <label class="title-input">Selecione o arquivo PDF</label>
+                            <input type="file" name="regulamento" id="regulamento" class="input-adm" accept="application/pdf">
+                            
+                            <?php if (!empty($valorForm['regulamento']) && file_exists("app/adms/assets/arquivos/competicao/" . $valorForm['id'] . "/" . $valorForm['regulamento'])): ?>
+                                <div style="margin-top: 15px;">
+                                    <a href="<?= URLADM ?>app/adms/assets/arquivos/competicao/<?= $valorForm['id'] ?>/<?= $valorForm['regulamento'] ?>" target="_blank" class="btn-info" style="padding: 8px 15px; font-size: 13px; border-radius: 4px; text-decoration: none; background: #17a2b8; color: white;">
+                                        <i class="fa-solid fa-eye"></i> Visualizar Regulamento Atual
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row-input">
                     <div class="column">
-                        <label class="title-input">Observações (Regulamento / Avisos)</label>
+                        <label class="title-input">Observações Adicionais</label>
                         <textarea name="observacoes" id="observacoes" class="input-adm" rows="4"><?= $valorForm['observacoes'] ?? '' ?></textarea>
                     </div>
                 </div>

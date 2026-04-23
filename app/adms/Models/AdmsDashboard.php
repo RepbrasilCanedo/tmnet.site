@@ -24,9 +24,6 @@ class AdmsDashboard
         
         // DOCAN LOGIC: BIFURCAÇÃO DE VISIBILIDADE
         if ($nivelLogado <= 2) {
-            // =========================================================
-            // VISÃO DA PLATAFORMA (S-ADMIN) - Vê Universo Inteiro
-            // =========================================================
             $read->fullRead("SELECT COUNT(id) as total_atletas FROM adms_users WHERE adms_access_level_id = 14");
             $this->result['contagem']['atletas'] = $read->getResult()[0]['total_atletas'] ?? 0;
 
@@ -43,9 +40,6 @@ class AdmsDashboard
             $this->result['lider'] = $read->getResult()[0] ?? null;
 
         } else {
-            // =========================================================
-            // VISÃO DO CLUBE - Vê Apenas o seu Ecossistema
-            // =========================================================
             $queryAtletas = "SELECT COUNT(DISTINCT usr.id) as total_atletas 
                              FROM adms_users AS usr
                              LEFT JOIN adms_inscricoes AS ins ON ins.adms_user_id = usr.id
@@ -69,7 +63,7 @@ class AdmsDashboard
             );
             $this->result['contagem']['partidas'] = $read->getResult()[0]['total_partidas'] ?? 0;
 
-            $queryLider = "SELECT DISTINCT usr.id, usr.name AS nome, usr.apelido, usr.imagem, usr.pontuacao_ranking 
+            $queryLider = "SELECT DISTINCT usr.id, usr.name AS nome, apelido, imagem, pontuacao_ranking 
                            FROM adms_users AS usr
                            LEFT JOIN adms_inscricoes AS ins ON ins.adms_user_id = usr.id
                            LEFT JOIN adms_competicoes AS comp ON comp.id = ins.adms_competicao_id
@@ -134,9 +128,9 @@ class AdmsDashboard
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
-        // 1. Busca todos os torneios ativos
+        // 1. Busca todos os torneios ativos (DOCAN FIX: Buscando Observações, Regulamento E CHAVE PIX)
         $read->fullRead(
-            "SELECT c.id, c.nome_torneio, c.data_evento, c.local_evento, c.categoria_cbtm, 
+            "SELECT c.id, c.nome_torneio, c.data_evento, c.local_evento, c.categoria_cbtm, c.observacoes, c.regulamento, c.chave_pix, 
                     emp.nome_fantasia as clube_nome, emp.logo as clube_logo, emp.id as clube_id
              FROM adms_competicoes c
              LEFT JOIN adms_emp_principal emp ON emp.id = c.empresa_id

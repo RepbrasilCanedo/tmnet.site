@@ -26,11 +26,8 @@ class AdmsNovoClube
         }
 
         // 1. VALIDAÇÃO DO CAPTCHA (Google reCAPTCHA v2)
-        // CHAVE SECRETA DE TESTE LOCAL (Trocar na nuvem)
-        $secretKey = "6Ld9RrAsAAAAAKrEK7bPB7JU3fH4N3ogAn9Dt1Di";
-        //$secretKey = "6LckDq0sAAAAAG7vfCcNmoK4qcFroB2lDbdRiZb9"; --- captcha Nuvem
-
-
+        $secretKey = "6LckDq0sAAAAAG7vfCcNmoK4qcFroB2lDbdRiZb9";
+        
         $captchaResponse = $this->data['g-recaptcha-response'] ?? '';
         
         if (empty($captchaResponse)) {
@@ -39,14 +36,34 @@ class AdmsNovoClube
             return;
         }
 
-        $verifyResponse = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secretKey}&response={$captchaResponse}");
+        // ========================================================================
+        // DOCAN FIX BLINDADO: Usar cURL em vez de file_get_contents 
+        // Isso fura o bloqueio dos servidores na nuvem e comunica com o Google em segurança!
+        // ========================================================================
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://www.google.com/recaptcha/api/siteverify",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => [
+                'secret' => $secretKey,
+                'response' => $captchaResponse
+            ],
+            CURLOPT_SSL_VERIFYPEER => false // Evita erros de certificado SSL no servidor
+        ]);
+        
+        $verifyResponse = curl_exec($curl);
+        curl_close($curl);
+        
         $responseData = json_decode($verifyResponse);
         
-        if (!$responseData->success) {
-            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Falha na validação de segurança (CAPTCHA).</p>";
+        // Verifica se a resposta foi válida e se o success é true
+        if (!$responseData || empty($responseData->success)) {
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Falha na comunicação de segurança com o Google (CAPTCHA).</p>";
             $this->result = false;
             return;
         }
+        
         unset($this->data['g-recaptcha-response']); // Remove do array para não dar erro no banco
 
         // 2. VALIDAÇÃO MATEMÁTICA DE CPF E CNPJ
@@ -80,8 +97,8 @@ class AdmsNovoClube
             'cnpj' => $this->data['cpf_cnpj'],
             'telefone' => $this->data['telefone'],
             'cep' => $this->data['cep'],
-            'logradouro' => $this->data['logradouro'] ?? '', // DOCAN FIX: Recebendo a Rua
-            'bairro' => $this->data['bairro'] ?? '',         // DOCAN FIX: Recebendo o Bairro'cidade' => $this->data['cidade'] ?? '',
+            'logradouro' => $this->data['logradouro'] ?? '', 
+            'bairro' => $this->data['bairro'] ?? '',         
             'cidade' => $this->data['cidade'] ?? '',
             'estado' => $this->data['estado'] ?? '',            
             'contato' => $this->data['nome_responsavel'] ?? '',
@@ -102,7 +119,7 @@ class AdmsNovoClube
                 'telefone' => $this->data['telefone'],
                 'user' => $this->data['user'],
                 'password' => password_hash($this->data['password'], PASSWORD_DEFAULT),
-                'adms_access_level_id' => 4, // Nível 3 = Administrador de Clube
+                'adms_access_level_id' => 4, // Nível 4 = Administrador de Clube
                 'adms_sits_user_id' => 3, // Status 3 = Aguardando Ativação
                 'empresa_id' => $idClubeCriado,
                 'created' => date("Y-m-d H:i:s")
@@ -127,7 +144,6 @@ class AdmsNovoClube
         }
     }
 
-    // DOCAN FIX: Motor de Validação Real de CPF e CNPJ
     private function validaCpfCnpj($valor): bool 
     {
         if (strlen($valor) == 11) {

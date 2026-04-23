@@ -7,26 +7,11 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     die("Erro: Página não encontrada<br>");
 }
 
-/**
- * Controller da página visualizar detalhes da empresa
- * @author Daniel Canedo - docan2006@gmail.com
- */
 class ViewEmpPrincipal
 {
-    /** @var array|string|null $data Recebe os dados que devem ser enviados para VIEW */
     private array|string|null $data;
-
-    /** @var int|string|null $id Recebe o id do registro */
     private int|string|null $id;
 
-    /**
-     * Metodo visualizar detalhe da empresa
-     * Recebe como parametro o ID que será usado para pesquisar as informações no banco de dados e instancia a MODELS AdmsViewEmpPrincial
-     * Se encontrar registro no banco de dados envia para VIEW.
-     * Senão é redirecionado para o listar empresas
-     * 
-     * @return void
-     */
     public function index(int|string|null $id = null): void
     {
         if (!empty($id)) {
@@ -40,18 +25,16 @@ class ViewEmpPrincipal
             } else {
                 $urlRedirect = URLADM . "view-emp-principal/index";
                 header("Location: $urlRedirect");
+                exit; // DOCAN FIX
             }
         } else {
-            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Dados da Empresa  não encontrado!</p>";
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Dados da Empresa não encontrado!</p>";
             $urlRedirect = URLADM . "list-emp-principal/index";
             header("Location: $urlRedirect");
+            exit; // DOCAN FIX
         }
     }
 
-    /**
-     * Instanciar a classe responsável em carregar a View e enviar os dados para View.
-     * 
-     */
     private function viewEmpPrincipal(): void
     {
         $button = [

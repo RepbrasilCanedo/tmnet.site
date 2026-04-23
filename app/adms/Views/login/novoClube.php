@@ -125,9 +125,8 @@ $valorForm = $this->data['form'] ?? [];
                 </div>
             </div>
         </div>
-        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                <!-- Cptcha nuvem <div class="g-recaptcha" data-sitekey="6LckDq0sAAAAADjSgFKX_9FFnEGbIqJVW8ncKBAm"></div>-->                
-            <div class="g-recaptcha" data-sitekey="6Ld9RrAsAAAAALwfG6hGwqyJexhNrLx2Rb4sq4_m"></div>
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">      
+           <div class="g-recaptcha" data-sitekey="6LckDq0sAAAAADjSgFKX_9FFnEGbIqJVW8ncKBAm"></div>
         </div>
 
         <button type="submit" name="SendNewClub" value="Cadastrar" class="btn-success">✅ Solicitar Acesso à Plataforma</button>

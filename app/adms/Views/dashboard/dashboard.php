@@ -97,6 +97,34 @@ $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
                                 <p><i class="fa-regular fa-calendar"></i> <strong>Data:</strong> <?= date('d/m/Y', strtotime($comp['data_evento'])) ?></p>
                                 <p><i class="fa-solid fa-location-dot"></i> <strong>Local:</strong> <?= $comp['local_evento'] ?></p>
                                 <p><i class="fa-solid fa-table-tennis-paddle-ball"></i> <strong>Categoria Base:</strong> <?= $comp['categoria_cbtm'] ?></p>
+                                
+                                <?php if (!empty($comp['observacoes'])): ?>
+                                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 15px; border-radius: 4px; font-size: 13px; color: #856404;">
+                                        <strong><i class="fa-solid fa-circle-info"></i> Observações / Avisos:</strong><br>
+                                        <span style="display: block; margin-top: 5px;"><?= nl2br(htmlspecialchars($comp['observacoes'])) ?></span>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($comp['regulamento']) && file_exists("app/adms/assets/arquivos/competicao/" . $comp['id'] . "/" . $comp['regulamento'])): ?>
+                                    <div style="margin-top: 15px;">
+                                        <a href="<?= URLADM ?>app/adms/assets/arquivos/competicao/<?= $comp['id'] ?>/<?= $comp['regulamento'] ?>" target="_blank" style="display: inline-block; background: #dc3545; color: #fff; font-size: 12px; font-weight: bold; text-decoration: none; padding: 6px 12px; border-radius: 4px;">
+                                            <i class="fa-solid fa-file-pdf"></i> Ler Regulamento Oficial
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($comp['chave_pix'])): ?>
+                                    <div style="background: #e8f5e9; border: 1px solid #c3e6cb; padding: 10px; margin-top: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="overflow: hidden; text-overflow: ellipsis; padding-right: 10px;">
+                                            <span style="font-size: 12px; color: #155724; display: block; font-weight: bold;"><i class="fa-brands fa-pix"></i> Chave PIX:</span>
+                                            <span style="color: #155724; font-size: 13px; word-break: break-all;"><?= $comp['chave_pix'] ?></span>
+                                        </div>
+                                        <button type="button" id="btn-pix-<?= $comp['id'] ?>" onclick="copiarPix('<?= $comp['chave_pix'] ?>', 'btn-pix-<?= $comp['id'] ?>')" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.3s; flex-shrink: 0;">
+                                            <i class="fa-regular fa-copy"></i> Copiar
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
+
                             </div>
                             <div class="vitrine-footer">
                                 <?php if ($jaInscrito): ?>
@@ -295,3 +323,23 @@ $nivelAcesso = $this->data['nivelAcesso'] ?? 0;
         
     </div>
 </div>
+
+<script>
+function copiarPix(textoPix, btnId) {
+    navigator.clipboard.writeText(textoPix).then(function() {
+        var btn = document.getElementById(btnId);
+        var htmlOriginal = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+        btn.style.backgroundColor = '#155724'; // Muda para verde escuro para dar feedback
+        
+        setTimeout(function() {
+            btn.innerHTML = htmlOriginal;
+            btn.style.backgroundColor = '#28a745'; // Volta ao verde original
+        }, 2500);
+    }).catch(function(err) {
+        console.error('Erro ao copiar PIX: ', err);
+        alert("O seu navegador bloqueou a cópia automática. Por favor, selecione e copie a chave manualmente.");
+    });
+}
+</script>

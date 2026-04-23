@@ -27,8 +27,10 @@ class EditCompeticao
         $this->data['form'] = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 
         if (!empty($this->data['form']['SendEditComp'])) {
-            // Recupera o array de categorias (o filter_input_array às vezes ignora arrays de checkboxes)
             $this->data['form']['categorias_selecionadas'] = $_POST['categorias_selecionadas'] ?? [];
+            
+            // DOCAN FIX: Recebe o ficheiro PDF enviado pelo formulário
+            $this->data['form']['regulamento'] = $_FILES['regulamento'] ?? null;
             
             $editComp->update($this->data['form']);
             
@@ -40,7 +42,6 @@ class EditCompeticao
             $editComp->viewCompeticao($this->id);
             if ($editComp->getResult()) {
                 $this->data['form'] = $editComp->getResult()[0];
-                // Transforma a string do banco de dados num array para marcar as checkboxes na View
                 $this->data['form']['categorias_selecionadas'] = explode(',', $this->data['form']['categorias_selecionadas'] ?? '');
             } else {
                 $_SESSION['msg'] = "<p class='alert-danger'>Erro: Competição não encontrada!</p>";

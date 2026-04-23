@@ -31,6 +31,58 @@ class AdmsEditPartida
         $this->resultBd = $viewPartida->getResult();
     }
 
+    // ========================================================================
+    // DOCAN ENGINE: LIVE SCORE SINC 
+    // ========================================================================
+    public function syncLiveScore(array $data): void
+    {
+        $id = (int)$data['id'];
+        
+        // Calcula os sets provisórios em tempo real para a TV
+        $setsA = 0;
+        $setsB = 0;
+        for ($i = 1; $i <= 5; $i++) {
+            $ptA = (isset($data["pts_set{$i}_a"]) && $data["pts_set{$i}_a"] !== '') ? (int)$data["pts_set{$i}_a"] : null;
+            $ptB = (isset($data["pts_set{$i}_b"]) && $data["pts_set{$i}_b"] !== '') ? (int)$data["pts_set{$i}_b"] : null;
+            
+            if ($ptA !== null && $ptB !== null) {
+                if (($ptA === 11 && $ptB <= 9) || ($ptB === 11 && $ptA <= 9) || ($ptA >= 10 && $ptB >= 10 && abs($ptA - $ptB) >= 2)) {
+                    if ($ptA > $ptB) $setsA++; else $setsB++;
+                }
+            }
+        }
+        
+        $dataUpdate = [
+            'pts_set1_a' => ($data['pts_set1_a'] !== '') ? (int)$data['pts_set1_a'] : null,
+            'pts_set1_b' => ($data['pts_set1_b'] !== '') ? (int)$data['pts_set1_b'] : null,
+            'pts_set2_a' => ($data['pts_set2_a'] !== '') ? (int)$data['pts_set2_a'] : null,
+            'pts_set2_b' => ($data['pts_set2_b'] !== '') ? (int)$data['pts_set2_b'] : null,
+            'pts_set3_a' => ($data['pts_set3_a'] !== '') ? (int)$data['pts_set3_a'] : null,
+            'pts_set3_b' => ($data['pts_set3_b'] !== '') ? (int)$data['pts_set3_b'] : null,
+            'pts_set4_a' => ($data['pts_set4_a'] !== '') ? (int)$data['pts_set4_a'] : null,
+            'pts_set4_b' => ($data['pts_set4_b'] !== '') ? (int)$data['pts_set4_b'] : null,
+            'pts_set5_a' => ($data['pts_set5_a'] !== '') ? (int)$data['pts_set5_a'] : null,
+            'pts_set5_b' => ($data['pts_set5_b'] !== '') ? (int)$data['pts_set5_b'] : null,
+            'sets_atleta_a' => $setsA, 
+            'sets_atleta_b' => $setsB,
+            'cartao_amarelo_a' => (int)($data['cartao_amarelo_a'] ?? 0),
+            'cartao_vermelho_a' => (int)($data['cartao_vermelho_a'] ?? 0),
+            'cartao_amarelo_b' => (int)($data['cartao_amarelo_b'] ?? 0),
+            'cartao_vermelho_b' => (int)($data['cartao_vermelho_b'] ?? 0),
+            'status_partida' => 'Em Andamento'
+        ];
+
+        if (isset($data['primeiro_saque'])) {
+            $dataUpdate['primeiro_saque'] = $data['primeiro_saque'];
+        }
+
+        $upPartida = new \App\adms\Models\helper\AdmsUpdate();
+        $upPartida->exeUpdate("adms_partidas", $dataUpdate, "WHERE id = :id", "id={$id}");
+
+        // Retorna sempre true para manter a TV ligada (mesmo se o placar for 0x0)
+        $this->result = true; 
+    }
+
     public function update(array $data): void
     {
         $this->getPartida($data['id']);
@@ -50,16 +102,10 @@ class AdmsEditPartida
             $novoVencedorId = 0;
 
             if ($isWO) {
-                // ====================================================================
-                // LÓGICA DE W.O.
-                // ====================================================================
                 $novoVencedorId = (int)$data['vencedor_wo_id'];
                 $setsA = ($novoVencedorId == $data['atleta_a_id']) ? 3 : 0;
                 $setsB = ($novoVencedorId == $data['atleta_b_id']) ? 3 : 0;
             } else {
-                // ====================================================================
-                // LÓGICA NORMAL (Regras de Sets)
-                // ====================================================================
                 $setAnteriorValido = true;
                 for ($i = 1; $i <= 5; $i++) {
                     $ptA = (isset($data["pts_set{$i}_a"]) && $data["pts_set{$i}_a"] !== '') ? (int)$data["pts_set{$i}_a"] : null;
@@ -80,7 +126,7 @@ class AdmsEditPartida
                         $setValido = false;
                         if (($ptA === 11 && $ptB <= 9) || ($ptB === 11 && $ptA <= 9)) {
                             $setValido = true;
-                        } elseif ($ptA >= 10 && $ptB >= 10 && abs($ptA - $ptB) === 2) {
+                        } elseif ($ptA >= 10 && $ptB >= 10 && abs($ptA - $ptB) >= 2) {
                             $setValido = true;
                         }
 

@@ -28,12 +28,11 @@ class Dashboard
             $this->data['sidebarActive'] = "dashboard"; 
             
             $vitrine = new \App\adms\Models\AdmsDashboard();
-            // DOCAN FIX: Busca a vitrine e a agenda do atleta
             $vitrine->getVitrineCompeticoes($userId); 
             $vitrine->getEstatisticasAtleta($userId); 
             
             $this->data['vitrine'] = $vitrine->getResult()['vitrine'] ?? [];
-            $this->data['stats'] = $vitrine->getResult(); // Passa a agenda e histórico
+            $this->data['stats'] = $vitrine->getResult(); 
             
             $loadView = new \Core\ConfigView("adms/Views/dashboard/dashboard", $this->data);
             $loadView->loadView();

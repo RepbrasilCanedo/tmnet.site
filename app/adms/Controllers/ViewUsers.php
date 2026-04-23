@@ -13,52 +13,58 @@ if(!defined('D0O8C0A3N1E9D6O1')){
  */
 class ViewUsers
 {
-    /** @var array|string|null $data Recebe os dados que devem ser enviados para VIEW */
     private array|string|null $data;
-
-    /** @var int|string|null $id Recebe o id do registro */
     private int|string|null $id;
 
-    /**
-     * Metodo visualizar usuarios
-     * Recebe como parametro o ID que será usado para pesquisar as informações no banco de dados e instancia a MODELS AdmsViewUsers
-     * Se encontrar registro no banco de dados envia para VIEW.
-     * Senão é redirecionado para o listar usuario.
-     * 
-     * @return void
-     */
     public function index(int|string|null $id = null): void
     {
+        // ========================================================================
+        // DOCAN FIX: O PULO DO GATO (AUTO-ID)
+        // Se o atleta clicar no menu sem ID na URL, o sistema assume o ID dele!
+        // ========================================================================
+        if (empty($id) && isset($_SESSION['user_id'])) {
+            $id = $_SESSION['user_id'];
+        }
+
         if (!empty($id)) {
             $this->id = (int) $id;
+            
+            // TRAVA DE SEGURANÇA (O Atleta só pode ver o seu próprio perfil)
+            if ($_SESSION['adms_access_level_id'] == 14 && $this->id != $_SESSION['user_id']) {
+                $_SESSION['msg'] = "<p class='alert-danger'>Erro: Você não tem permissão para aceder ao perfil de outro atleta.</p>";
+                header("Location: " . URLADM . "dashboard/index");
+                exit;
+            }
 
             $viewUser = new \App\adms\Models\AdmsViewUsers();
             $viewUser->viewUser($this->id);
+            
             if ($viewUser->getResult()) {
                 $this->data['viewUser'] = $viewUser->getResultBd();
                 $this->viewUser();
             } else {
                 $urlRedirect = URLADM . "list-users/index";
                 header("Location: $urlRedirect");
+                exit;
             }
         } else {
             $_SESSION['msg'] = "<p class='alert-danger'>Erro: Usuário não encontrado!</p>";
             $urlRedirect = URLADM . "list-users/index";
             header("Location: $urlRedirect");
+            exit;
         }
     }
 
-    /**
-     * Instanciar a classe responsável em carregar a View e enviar os dados para View.
-     * 
-     */
     private function viewUser(): void
     {
-        $button = ['list_users' => ['menu_controller' => 'list-users', 'menu_metodo' => 'index'],
-        'edit_users' => ['menu_controller' => 'edit-users', 'menu_metodo' => 'index'],
-        'edit_users_password' => ['menu_controller' => 'edit-users-password', 'menu_metodo' => 'index'],
-        'edit_users_image' => ['menu_controller' => 'edit-users-image', 'menu_metodo' => 'index'],
-        'delete_users' => ['menu_controller' => 'delete-users', 'menu_metodo' => 'index']];
+        $button = [
+            'list_users' => ['menu_controller' => 'list-users', 'menu_metodo' => 'index'],
+            'edit_users' => ['menu_controller' => 'edit-users', 'menu_metodo' => 'index'],
+            'edit_users_password' => ['menu_controller' => 'edit-users-password', 'menu_metodo' => 'index'],
+            'edit_users_image' => ['menu_controller' => 'edit-users-image', 'menu_metodo' => 'index'],
+            'delete_users' => ['menu_controller' => 'delete-users', 'menu_metodo' => 'index']
+        ];
+        
         $listBotton = new \App\adms\Models\helper\AdmsButton();
         $this->data['button'] = $listBotton->buttonPermission($button);
 

@@ -14,6 +14,18 @@ class EditPartida
 
     public function index(int|string|null $id = null): void
     {
+        // ========================================================================
+        // DOCAN ENGINE: O RECETOR DO LIVE SCORE (AJAX) - Lendo $_POST direto!
+        // ========================================================================
+        if (isset($_POST['AjaxSyncLive'])) {
+            $editPartida = new \App\adms\Models\AdmsEditPartida();
+            $editPartida->syncLiveScore($_POST); // Passa o POST inteiro
+            
+            header('Content-Type: application/json');
+            echo json_encode(['status' => true]);
+            exit;
+        }
+
         $this->data['form'] = filter_input_array(INPUT_POST, FILTER_DEFAULT);
         $this->id = (int) $id;
 
@@ -25,15 +37,12 @@ class EditPartida
 
         $editPartida = new \App\adms\Models\AdmsEditPartida();
 
-        // Variável para saber se estamos a tentar salvar o formulário
         $isSubmit = isset($this->data['form']['AdmsEditPartida']);
 
-        // Se clicou no botão salvar
         if ($isSubmit) {
             unset($this->data['form']['AdmsEditPartida']);
             $editPartida->update($this->data['form']);
 
-            // Se salvou com sucesso, redireciona
             if ($editPartida->getResult()) {
                 $compId = $editPartida->getCompeticaoId();
                 if ($_SESSION['adms_access_level_id'] == 15) {
@@ -43,11 +52,8 @@ class EditPartida
                 }
                 exit;
             }
-            // SE FALHOU (erro de regra de pontuação), o script continua rodando para baixo.
-            // Os dados digitados já estão seguros dentro de $this->data['form'] e voltarão para a tela!
         } 
         
-        // Se NÃO foi submissão (ou seja, é o primeiro acesso à página), carrega os dados do banco
         if (!$isSubmit) {
             $editPartida->getPartida($this->id);
             if ($editPartida->getResultBd()) {

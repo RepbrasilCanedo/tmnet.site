@@ -14,44 +14,27 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
  */
 class AdmsViewUsers
 {
-
-    /** @var bool $result Recebe true quando executar o processo com sucesso e false quando houver erro */
     private bool $result = false;
-
-    /** @var array|null $resultBd Recebe os registros do banco de dados */
     private array|null $resultBd;
-
-    /** @var int|string|null $id Recebe o id do registro */
     private int|string|null $id;
 
-    /**
-     * @return bool Retorna true quando executar o processo com sucesso e false quando houver erro
-     */
     function getResult(): bool
     {
         return $this->result;
     }
 
-    /**
-     * @return bool Retorna os detalhes do registro
-     */
     function getResultBd(): array|null
     {
         return $this->resultBd;
     }
 
-    /**
-     * Metodo para visualizar os detalhes do usuário
-     * Recebe o ID do usuário que será usado como parametro na pesquisa
-     * Retorna FALSE se houver algum erro
-     * @param integer $id
-     * @return void
-     */
     public function viewUser(int $id): void
     {
         $this->id = $id;
 
         $viewUser = new \App\adms\Models\helper\AdmsRead();
+        
+        // 1. BUSCA OS DADOS PRINCIPAIS DO USUÁRIO
         $viewUser->fullRead("SELECT usr.id, usr.name AS name_usr, usr.apelido, usr.estilo_jogo, usr.mao_dominante, usr.pontuacao_ranking, usr.data_nascimento, usr.email, usr.telefone, 
                             usr.user, usr.imagem, usr.created, usr.modified, sit.name AS name_sit, col.color, lev.id AS id_lev, lev.name AS name_lev, 
                             emp.nome_fantasia as nome_fantasia_emp, emp.razao_social as razao_social_emp
@@ -63,8 +46,49 @@ class AdmsViewUsers
                             WHERE usr.id= :id_user 
                             LIMIT :limit", "id_user={$this->id}&limit=1");
 
-        $this->resultBd = $viewUser->getResult();
-        if ($this->resultBd) {
+        if ($viewUser->getResult()) {
+            $this->resultBd = $viewUser->getResult();
+            
+            // DOCAN ENGINE: Se for um Atleta (Nível 14), vamos buscar a sua Carreira!
+            if ($this->resultBd[0]['id_lev'] == 14) {
+                
+                // A) Buscar todos os Clubes aos quais ele está filiado
+                $readClubes = new \App\adms\Models\helper\AdmsRead();
+                $readClubes->fullRead(
+                    "SELECT emp.nome_fantasia, emp.logo 
+                     FROM adms_atleta_clube ac 
+                     INNER JOIN adms_emp_principal emp ON emp.id = ac.empresa_id 
+                     WHERE ac.adms_user_id = :id_user", 
+                    "id_user={$this->id}"
+                );
+                $this->resultBd['clubes_filiado'] = $readClubes->getResult() ?: [];
+
+                // B) Buscar Histórico e Próximos Torneios
+                $readTorneios = new \App\adms\Models\helper\AdmsRead();
+                $readTorneios->fullRead(
+                    "SELECT c.id, c.nome_torneio, c.data_evento, cat.nome as nome_categoria, i.status_pagamento_id 
+                     FROM adms_inscricoes i 
+                     INNER JOIN adms_competicoes c ON c.id = i.adms_competicao_id 
+                     INNER JOIN adms_categorias cat ON cat.id = i.adms_categoria_id 
+                     WHERE i.adms_user_id = :id_user 
+                     ORDER BY c.data_evento DESC", 
+                    "id_user={$this->id}"
+                );
+                
+                $torneios = $readTorneios->getResult() ?: [];
+                $this->resultBd['torneios_ativos'] = [];
+                $this->resultBd['torneios_historico'] = [];
+                $hoje = date('Y-m-d');
+                
+                foreach ($torneios as $t) {
+                    if ($t['data_evento'] >= $hoje) {
+                        $this->resultBd['torneios_ativos'][] = $t;
+                    } else {
+                        $this->resultBd['torneios_historico'][] = $t;
+                    }
+                }
+            }
+
             $this->result = true;
         } else {
             $_SESSION['msg'] = "<p class='alert-danger'>Erro: Usuário não encontrado!</p>";

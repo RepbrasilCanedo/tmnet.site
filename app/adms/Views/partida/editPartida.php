@@ -51,13 +51,19 @@ if (!empty($this->data['atletas'])) {
     .card-box { flex: 1; min-width: 250px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; }
     .card-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
     .card-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    
+    /* DOCAN FIX: Selo Live Score */
+    .live-badge { font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px; background: #e9ecef; color: #6c757d; border: 1px solid #dee2e6; display: flex; align-items: center; gap: 5px; }
 </style>
 
 <div class="dash-wrapper">
     <div class="row">
         <div class="top-list">
             <span class="title-content">📱 Súmula Eletrônica</span>
-            <div class="top-list-right">
+            <div class="top-list-right" style="display: flex; align-items: center; gap: 15px;">
+                <div id="syncIndicator" class="live-badge">
+                    <i class="fa-solid fa-satellite-dish"></i> Aguardando Início
+                </div>
                 <a href="<?= URLADM ?>view-competicao/index/<?= $this->data['form']['adms_competicao_id'] ?? '' ?>" class="btn-info">Voltar</a>
             </div>
         </div>
@@ -105,10 +111,10 @@ if (!empty($this->data['atletas'])) {
                         <span class="saque-title">Sorteio Inicial: Quem começa sacando?</span>
                         <div class="saque-options">
                             <label style="color: #0044cc;">
-                                <input type="radio" name="primeiro_saque" value="A" <?= (isset($this->data['form']['primeiro_saque']) && $this->data['form']['primeiro_saque'] == 'A') ? 'checked' : '' ?> required> Lado A
+                                <input type="radio" name="primeiro_saque" value="A" onchange="enviarLiveScore()" <?= (isset($this->data['form']['primeiro_saque']) && $this->data['form']['primeiro_saque'] == 'A') ? 'checked' : '' ?> required> Lado A
                             </label>
                             <label style="color: #dc3545;">
-                                <input type="radio" name="primeiro_saque" value="B" <?= (isset($this->data['form']['primeiro_saque']) && $this->data['form']['primeiro_saque'] == 'B') ? 'checked' : '' ?> required> Lado B
+                                <input type="radio" name="primeiro_saque" value="B" onchange="enviarLiveScore()" <?= (isset($this->data['form']['primeiro_saque']) && $this->data['form']['primeiro_saque'] == 'B') ? 'checked' : '' ?> required> Lado B
                             </label>
                         </div>
                     </div>
@@ -193,6 +199,51 @@ if (!empty($this->data['atletas'])) {
 </div>
 
 <script>
+// ============================================================================
+// DOCAN ENGINE: Função que envia o placar em tempo real (AJAX)
+// ============================================================================
+function enviarLiveScore() {
+    let form = document.getElementById('formPlacar');
+    let formData = new FormData(form);
+    formData.append('AjaxSyncLive', '1'); // Bandeira invisível para a Controller
+
+    let indicator = document.getElementById('syncIndicator');
+    if(indicator) {
+        indicator.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Transmitindo...';
+        indicator.style.color = '#856404';
+        indicator.style.backgroundColor = '#fff3cd';
+        indicator.style.borderColor = '#ffeeba';
+    }
+
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(indicator) {
+            if(data.status) {
+                indicator.innerHTML = '<i class="fa-solid fa-broadcast-tower"></i> AO VIVO';
+                indicator.style.color = '#155724';
+                indicator.style.backgroundColor = '#d4edda';
+                indicator.style.borderColor = '#c3e6cb';
+            } else {
+                indicator.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Falha Sync';
+                indicator.style.color = '#721c24';
+                indicator.style.backgroundColor = '#f8d7da';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Erro na Transmissão Live Score:', error);
+        if(indicator) {
+            indicator.innerHTML = '<i class="fa-solid fa-wifi" style="text-decoration: line-through;"></i> Offline';
+            indicator.style.color = '#721c24';
+            indicator.style.backgroundColor = '#f8d7da';
+        }
+    });
+}
+
 function changeScore(inputId, amount) {
     let input = document.getElementById(inputId);
     let currentValue = input.value === '' ? 0 : parseInt(input.value);
@@ -213,6 +264,9 @@ function changeScore(inputId, amount) {
     if(inputId.includes('pts_set')) {
         gerenciarTravas();
     }
+
+    // DOCAN FIX: Aciona a transmissão do Live Score sempre que a pontuação muda
+    enviarLiveScore();
 }
 
 function validarSet(ptA, ptB) {
@@ -275,7 +329,7 @@ function confirmarWO(atletaId, lado) {
         document.getElementById('vencedor_wo_id').value = atletaId;
         
         let btnSalvar = document.getElementById('btnSalvar');
-        if(btnSalvar) btnSalvar.click(); // Força o clique no botão original de salvar
+        if(btnSalvar) btnSalvar.click(); 
     }
 }
 

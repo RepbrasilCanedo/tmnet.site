@@ -18,10 +18,19 @@ class PainelJogos
         if (!empty($id)) {
             $painel = new \App\adms\Models\AdmsPainelJogos();
             $painel->listarJogosPainel($id);
+            
+            // ========================================================================
+            // DOCAN FIX: A PORTA DO AJAX (Se pedir só os dados, devolve só o JSON)
+            // ========================================================================
+            if (isset($_GET['ajax']) && $_GET['ajax'] == 'true') {
+                header('Content-Type: application/json');
+                echo json_encode($painel->getResult());
+                exit; // Morre aqui para não desenhar o HTML de novo
+            }
+
             $this->data['painel'] = $painel->getResult();
             $this->data['competicao_id'] = $id;
 
-            // Carrega o menu padrão, mas a View vai esconder a barra lateral com CSS
             $listMenu = new \App\adms\Models\helper\AdmsMenu();
             $this->data['menu'] = $listMenu->itemMenu();
             $this->data['sidebarActive'] = "list-competicoes";
