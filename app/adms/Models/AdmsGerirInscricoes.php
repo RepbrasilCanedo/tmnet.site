@@ -21,10 +21,13 @@ class AdmsGerirInscricoes
     public function listarTorneiosDoClube(): void
     {
         $read = new \App\adms\Models\helper\AdmsRead();
+        // ========================================================================
+        // DOCAN FIX: Adicionado "AND status_inscricao = 1" para mostrar apenas os ativos!
+        // ========================================================================
         $read->fullRead(
             "SELECT id, nome_torneio, status_inscricao, data_evento 
              FROM adms_competicoes 
-             WHERE empresa_id = :empresa 
+             WHERE empresa_id = :empresa AND status_inscricao = 1
              ORDER BY id DESC", 
             "empresa={$_SESSION['emp_user']}"
         );
@@ -120,7 +123,6 @@ class AdmsGerirInscricoes
         $inscricoesDoAtleta = $read->getResult();
 
         if ($inscricoesDoAtleta) {
-            // DOCAN FIX: Removemos o campo 'modified' porque a tabela adms_inscricoes geralmente não o possui.
             $dados = ['status_pagamento_id' => $novoStatus];
             $up = new \App\adms\Models\helper\AdmsUpdate();
 

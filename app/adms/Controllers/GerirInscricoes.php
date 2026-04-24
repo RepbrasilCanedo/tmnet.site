@@ -30,7 +30,7 @@ class GerirInscricoes
         // 2. Processa Ações de Pagamento (Botões Aprovar / Desfazer)
         $postData = filter_input_array(INPUT_POST, FILTER_DEFAULT);
         
-        // DOCAN FIX: Se houver POST de Ação, processa e morre aqui, redirecionando o utilizador
+        // Se houver POST de Ação, processa e morre aqui, redirecionando o utilizador
         if (!empty($postData['AcaoStatus'])) {
             $uId = (int)$postData['user_id'];
             $cId = (int)$postData['comp_id'];

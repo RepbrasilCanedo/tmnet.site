@@ -4,16 +4,13 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     die("Erro: Página não encontrada<br>");
 }
 
-// Captura os nomes dos atletas para exibir na tela sem usar Select
-$nomeAtletaA = "Atleta A";
-$nomeAtletaB = "Atleta B";
-if (!empty($this->data['atletas'])) {
-    foreach ($this->data['atletas'] as $atleta) {
-        if ($this->data['form']['atleta_a_id'] == $atleta['id']) $nomeAtletaA = $atleta['name'] . " (" . $atleta['apelido'] . ")";
-        if ($this->data['form']['atleta_b_id'] == $atleta['id']) $nomeAtletaB = $atleta['name'] . " (" . $atleta['apelido'] . ")";
-    }
-}
+// ========================================================================
+// DOCAN FIX: Captura os nomes diretamente do Array 'form' vindos da Model
+// ========================================================================
+$nomeAtletaA = !empty($this->data['form']['nome_a']) ? $this->data['form']['nome_a'] . " (" . $this->data['form']['apelido_a'] . ")" : "A Definir";
+$nomeAtletaB = !empty($this->data['form']['nome_b']) ? $this->data['form']['nome_b'] . " (" . $this->data['form']['apelido_b'] . ")" : "A Definir";
 ?>
+
 <style>
     .sumula-mobile-container { max-width: 800px; margin: 0 auto; background: #f8f9fa; padding: 15px; border-radius: 8px; }
     .versus-header { display: flex; flex-direction: column; gap: 15px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }

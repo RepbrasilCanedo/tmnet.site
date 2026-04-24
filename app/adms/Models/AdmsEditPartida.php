@@ -20,10 +20,16 @@ class AdmsEditPartida
     public function getPartida(int $id): void
     {
         $viewPartida = new \App\adms\Models\helper\AdmsRead();
+        
+        // DOCAN FIX: Traz os nomes dos atletas diretamente do banco (JOIN)
         $viewPartida->fullRead(
-            "SELECT p.*, c.fator_multiplicador 
+            "SELECT p.*, c.fator_multiplicador,
+                    ua.name as nome_a, ua.apelido as apelido_a,
+                    ub.name as nome_b, ub.apelido as apelido_b
              FROM adms_partidas p
              INNER JOIN adms_competicoes c ON c.id = p.adms_competicao_id
+             LEFT JOIN adms_users ua ON ua.id = p.atleta_a_id
+             LEFT JOIN adms_users ub ON ub.id = p.atleta_b_id
              WHERE p.id = :id AND c.empresa_id = :empresa LIMIT 1",
             "id={$id}&empresa={$_SESSION['emp_user']}"
         );
@@ -32,7 +38,7 @@ class AdmsEditPartida
     }
 
     // ========================================================================
-    // DOCAN ENGINE: LIVE SCORE SINC 
+    // DOCAN ENGINE: LIVE SCORE SINC (Blindado contra Undefined Keys)
     // ========================================================================
     public function syncLiveScore(array $data): void
     {
@@ -53,22 +59,22 @@ class AdmsEditPartida
         }
         
         $dataUpdate = [
-            'pts_set1_a' => ($data['pts_set1_a'] !== '') ? (int)$data['pts_set1_a'] : null,
-            'pts_set1_b' => ($data['pts_set1_b'] !== '') ? (int)$data['pts_set1_b'] : null,
-            'pts_set2_a' => ($data['pts_set2_a'] !== '') ? (int)$data['pts_set2_a'] : null,
-            'pts_set2_b' => ($data['pts_set2_b'] !== '') ? (int)$data['pts_set2_b'] : null,
-            'pts_set3_a' => ($data['pts_set3_a'] !== '') ? (int)$data['pts_set3_a'] : null,
-            'pts_set3_b' => ($data['pts_set3_b'] !== '') ? (int)$data['pts_set3_b'] : null,
-            'pts_set4_a' => ($data['pts_set4_a'] !== '') ? (int)$data['pts_set4_a'] : null,
-            'pts_set4_b' => ($data['pts_set4_b'] !== '') ? (int)$data['pts_set4_b'] : null,
-            'pts_set5_a' => ($data['pts_set5_a'] !== '') ? (int)$data['pts_set5_a'] : null,
-            'pts_set5_b' => ($data['pts_set5_b'] !== '') ? (int)$data['pts_set5_b'] : null,
+            'pts_set1_a' => (isset($data['pts_set1_a']) && $data['pts_set1_a'] !== '') ? (int)$data['pts_set1_a'] : null,
+            'pts_set1_b' => (isset($data['pts_set1_b']) && $data['pts_set1_b'] !== '') ? (int)$data['pts_set1_b'] : null,
+            'pts_set2_a' => (isset($data['pts_set2_a']) && $data['pts_set2_a'] !== '') ? (int)$data['pts_set2_a'] : null,
+            'pts_set2_b' => (isset($data['pts_set2_b']) && $data['pts_set2_b'] !== '') ? (int)$data['pts_set2_b'] : null,
+            'pts_set3_a' => (isset($data['pts_set3_a']) && $data['pts_set3_a'] !== '') ? (int)$data['pts_set3_a'] : null,
+            'pts_set3_b' => (isset($data['pts_set3_b']) && $data['pts_set3_b'] !== '') ? (int)$data['pts_set3_b'] : null,
+            'pts_set4_a' => (isset($data['pts_set4_a']) && $data['pts_set4_a'] !== '') ? (int)$data['pts_set4_a'] : null,
+            'pts_set4_b' => (isset($data['pts_set4_b']) && $data['pts_set4_b'] !== '') ? (int)$data['pts_set4_b'] : null,
+            'pts_set5_a' => (isset($data['pts_set5_a']) && $data['pts_set5_a'] !== '') ? (int)$data['pts_set5_a'] : null,
+            'pts_set5_b' => (isset($data['pts_set5_b']) && $data['pts_set5_b'] !== '') ? (int)$data['pts_set5_b'] : null,
             'sets_atleta_a' => $setsA, 
             'sets_atleta_b' => $setsB,
-            'cartao_amarelo_a' => (int)($data['cartao_amarelo_a'] ?? 0),
-            'cartao_vermelho_a' => (int)($data['cartao_vermelho_a'] ?? 0),
-            'cartao_amarelo_b' => (int)($data['cartao_amarelo_b'] ?? 0),
-            'cartao_vermelho_b' => (int)($data['cartao_vermelho_b'] ?? 0),
+            'cartao_amarelo_a' => isset($data['cartao_amarelo_a']) ? (int)$data['cartao_amarelo_a'] : 0,
+            'cartao_vermelho_a' => isset($data['cartao_vermelho_a']) ? (int)$data['cartao_vermelho_a'] : 0,
+            'cartao_amarelo_b' => isset($data['cartao_amarelo_b']) ? (int)$data['cartao_amarelo_b'] : 0,
+            'cartao_vermelho_b' => isset($data['cartao_vermelho_b']) ? (int)$data['cartao_vermelho_b'] : 0,
             'status_partida' => 'Em Andamento'
         ];
 
@@ -79,7 +85,6 @@ class AdmsEditPartida
         $upPartida = new \App\adms\Models\helper\AdmsUpdate();
         $upPartida->exeUpdate("adms_partidas", $dataUpdate, "WHERE id = :id", "id={$id}");
 
-        // Retorna sempre true para manter a TV ligada (mesmo se o placar for 0x0)
         $this->result = true; 
     }
 
@@ -150,7 +155,6 @@ class AdmsEditPartida
                 }
             }
 
-            // Finaliza e grava no banco
             $fator = (float)$dadosOriginais['fator_multiplicador'];
             $novosPontos = 10 * $fator;
             $this->ajustarRanking($novoVencedorId, $novosPontos);
@@ -167,21 +171,21 @@ class AdmsEditPartida
                 'pontos_ganhos' => $novosPontos,
                 'status_partida' => 'Finalizado',
                 
-                'pts_set1_a' => $isWO ? ($setsA == 3 ? 11 : 0) : (($data['pts_set1_a'] !== '') ? $data['pts_set1_a'] : null),
-                'pts_set1_b' => $isWO ? ($setsB == 3 ? 11 : 0) : (($data['pts_set1_b'] !== '') ? $data['pts_set1_b'] : null),
-                'pts_set2_a' => $isWO ? ($setsA == 3 ? 11 : 0) : (($data['pts_set2_a'] !== '') ? $data['pts_set2_a'] : null),
-                'pts_set2_b' => $isWO ? ($setsB == 3 ? 11 : 0) : (($data['pts_set2_b'] !== '') ? $data['pts_set2_b'] : null),
-                'pts_set3_a' => $isWO ? ($setsA == 3 ? 11 : 0) : (($data['pts_set3_a'] !== '') ? $data['pts_set3_a'] : null),
-                'pts_set3_b' => $isWO ? ($setsB == 3 ? 11 : 0) : (($data['pts_set3_b'] !== '') ? $data['pts_set3_b'] : null),
-                'pts_set4_a' => $isWO ? null : (($data['pts_set4_a'] !== '') ? $data['pts_set4_a'] : null),
-                'pts_set4_b' => $isWO ? null : (($data['pts_set4_b'] !== '') ? $data['pts_set4_b'] : null),
-                'pts_set5_a' => $isWO ? null : (($data['pts_set5_a'] !== '') ? $data['pts_set5_a'] : null),
-                'pts_set5_b' => $isWO ? null : (($data['pts_set5_b'] !== '') ? $data['pts_set5_b'] : null),
+                'pts_set1_a' => $isWO ? ($setsA == 3 ? 11 : 0) : ((isset($data['pts_set1_a']) && $data['pts_set1_a'] !== '') ? (int)$data['pts_set1_a'] : null),
+                'pts_set1_b' => $isWO ? ($setsB == 3 ? 11 : 0) : ((isset($data['pts_set1_b']) && $data['pts_set1_b'] !== '') ? (int)$data['pts_set1_b'] : null),
+                'pts_set2_a' => $isWO ? ($setsA == 3 ? 11 : 0) : ((isset($data['pts_set2_a']) && $data['pts_set2_a'] !== '') ? (int)$data['pts_set2_a'] : null),
+                'pts_set2_b' => $isWO ? ($setsB == 3 ? 11 : 0) : ((isset($data['pts_set2_b']) && $data['pts_set2_b'] !== '') ? (int)$data['pts_set2_b'] : null),
+                'pts_set3_a' => $isWO ? ($setsA == 3 ? 11 : 0) : ((isset($data['pts_set3_a']) && $data['pts_set3_a'] !== '') ? (int)$data['pts_set3_a'] : null),
+                'pts_set3_b' => $isWO ? ($setsB == 3 ? 11 : 0) : ((isset($data['pts_set3_b']) && $data['pts_set3_b'] !== '') ? (int)$data['pts_set3_b'] : null),
+                'pts_set4_a' => $isWO ? null : ((isset($data['pts_set4_a']) && $data['pts_set4_a'] !== '') ? (int)$data['pts_set4_a'] : null),
+                'pts_set4_b' => $isWO ? null : ((isset($data['pts_set4_b']) && $data['pts_set4_b'] !== '') ? (int)$data['pts_set4_b'] : null),
+                'pts_set5_a' => $isWO ? null : ((isset($data['pts_set5_a']) && $data['pts_set5_a'] !== '') ? (int)$data['pts_set5_a'] : null),
+                'pts_set5_b' => $isWO ? null : ((isset($data['pts_set5_b']) && $data['pts_set5_b'] !== '') ? (int)$data['pts_set5_b'] : null),
                 
-                'cartao_amarelo_a' => (int)($data['cartao_amarelo_a'] ?? 0),
-                'cartao_vermelho_a' => (int)($data['cartao_vermelho_a'] ?? 0),
-                'cartao_amarelo_b' => (int)($data['cartao_amarelo_b'] ?? 0),
-                'cartao_vermelho_b' => (int)($data['cartao_vermelho_b'] ?? 0)
+                'cartao_amarelo_a' => isset($data['cartao_amarelo_a']) ? (int)$data['cartao_amarelo_a'] : 0,
+                'cartao_vermelho_a' => isset($data['cartao_vermelho_a']) ? (int)$data['cartao_vermelho_a'] : 0,
+                'cartao_amarelo_b' => isset($data['cartao_amarelo_b']) ? (int)$data['cartao_amarelo_b'] : 0,
+                'cartao_vermelho_b' => isset($data['cartao_vermelho_b']) ? (int)$data['cartao_vermelho_b'] : 0
             ];
 
             $upPartida = new \App\adms\Models\helper\AdmsUpdate();
@@ -197,6 +201,9 @@ class AdmsEditPartida
         }
     }
 
+    // ========================================================================
+    // DOCAN FIX: FUNÇÕES REPOSTAS COM SUCESSO!
+    // ========================================================================
     private function ajustarRanking(int $atletaId, float|int $pontos): void
     {
         $readAtleta = new \App\adms\Models\helper\AdmsRead();

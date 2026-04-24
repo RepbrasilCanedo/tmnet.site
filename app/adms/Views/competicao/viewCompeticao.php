@@ -23,17 +23,23 @@ if (!empty($partidas)) {
 $btnMataMataDisabled = ($hasMataMata || $isFinished || !$hasGrupos || $pendenciasGrupos) ? 'btn-disabled' : '';
 $avisoMataMata = $pendenciasGrupos ? "title='Conclua todas as partidas da fase de grupos primeiro!'" : "";
 
+// DOCAN FIX: Lógica de 3 Estados (1=Aberta, 2=Andamento, 3=Encerrada)
 $statusInscricao = $detalhes['status_inscricao'] ?? 1;
 if ($statusInscricao == 1) {
     $btnClass = "btn-danger";
     $btnTexto = "🔒 Encerrar Inscrições";
     $btnColor = "#dc3545";
-    $statusMsg = "<span style='color: #0044cc; font-weight: bold;'>Inscrições Abertas</span>";
-} else {
-    $btnClass = "btn-success";
+    $statusMsg = "<span style='color: #28a745; font-weight: bold;'>Fase 1: Inscrições Abertas</span>";
+} elseif ($statusInscricao == 2) {
+    $btnClass = "btn-warning";
     $btnTexto = "🔓 Reabrir Inscrições";
-    $btnColor = "#0044cc";
-    $statusMsg = "<span style='color: #dc3545; font-weight: bold;'>Inscrições Encerradas</span>";
+    $btnColor = "#ffc107";
+    $statusMsg = "<span style='color: #ffc107; font-weight: bold;'>Fase 2: Torneio Em Andamento</span>";
+} else {
+    $btnClass = "btn-secondary";
+    $btnTexto = "Torneio Finalizado";
+    $btnColor = "#6c757d";
+    $statusMsg = "<span style='color: #dc3545; font-weight: bold;'>Fase 3: Torneio Encerrado</span>";
 }
 
 // Verifica se é torneio com peso
@@ -118,9 +124,17 @@ $rankingProcessado = ($detalhes['ranking_processado'] == 1);
             
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span style="font-size: 14px;">Status: <?= $statusMsg ?></span>
-                <a href="<?= URLADM ?>alt-status-inscricao/index/<?= $detalhes['id'] ?>" class="<?= $btnClass ?> <?= $isFinished ? 'btn-disabled' : '' ?>" style="background-color: <?= $btnColor ?>; color: white; padding: 6px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: bold;">
-                    <?= $btnTexto ?>
-                </a>
+                
+                <?php if ($statusInscricao != 3): ?>
+                    <form method="POST" action="" style="margin: 0;">
+                        <input type="hidden" name="status_atual" value="<?= $statusInscricao ?>">
+                        <button type="submit" name="MudarStatusInscricao" value="Mudar" class="<?= $btnClass ?> <?= $isFinished ? 'btn-disabled' : '' ?>" style="background-color: <?= $btnColor ?>; color: <?= ($statusInscricao == 2) ? '#333' : 'white' ?>; padding: 6px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">
+                            <?= $btnTexto ?>
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <span style="background-color: #6c757d; color: white; padding: 6px 15px; border-radius: 4px; font-size: 14px; font-weight: bold;">🔒 Torneio Arquivado</span>
+                <?php endif; ?>
             </div>
         </div>
 

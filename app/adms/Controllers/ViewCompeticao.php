@@ -19,11 +19,21 @@ class ViewCompeticao
         if (!empty($this->id)) {
             $viewComp = new \App\adms\Models\AdmsViewCompeticao();
             
-            // DOCAN FIX: Interceta o clique do botão "Processar Ranking"
             $formData = filter_input_array(INPUT_POST, FILTER_DEFAULT);
+            
+            // DOCAN FIX: Interceta o clique do botão "Processar Ranking"
             if (!empty($formData['ProcessarRanking'])) {
                 $viewComp->processarRankingOficial($this->id);
                 // Redireciona para limpar o POST
+                header("Location: " . URLADM . "view-competicao/index/{$this->id}");
+                exit;
+            }
+
+            // DOCAN FIX: Interceta a mudança manual de Inscrições Abertas (1) para Andamento (2)
+            if (!empty($formData['MudarStatusInscricao'])) {
+                $statusAtual = (int)$formData['status_atual'];
+                $novoStatus = ($statusAtual == 1) ? 2 : 1; 
+                $viewComp->mudarStatusInscricao($this->id, $novoStatus);
                 header("Location: " . URLADM . "view-competicao/index/{$this->id}");
                 exit;
             }

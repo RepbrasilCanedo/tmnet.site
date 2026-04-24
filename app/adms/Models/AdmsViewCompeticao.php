@@ -127,6 +127,25 @@ class AdmsViewCompeticao
     }
 
     // =========================================================================
+    // DOCAN FIX: MUDANÇA DE STATUS DA INSCRIÇÃO (1 ou 2)
+    // =========================================================================
+    public function mudarStatusInscricao(int $compId, int $novoStatus): void
+    {
+        $up = new \App\adms\Models\helper\AdmsUpdate();
+        $up->exeUpdate("adms_competicoes", ['status_inscricao' => $novoStatus], "WHERE id=:id AND empresa_id=:emp", "id={$compId}&emp={$_SESSION['emp_user']}");
+        
+        if ($up->getResult()) {
+            if ($novoStatus == 2) {
+                $_SESSION['msg'] = "<p class='alert-success'>Inscrições Encerradas! A competição está Em Andamento.</p>";
+            } else {
+                $_SESSION['msg'] = "<p class='alert-info'>Inscrições Reabertas com sucesso.</p>";
+            }
+        } else {
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro ao tentar alterar o status da competição.</p>";
+        }
+    }
+
+    // =========================================================================
     // O MOTOR DE PROCESSAMENTO DO RANKING (CBTM) CONTINUA INTACTO AQUI
     // =========================================================================
     public function processarRankingOficial(int $compId): void
@@ -263,8 +282,9 @@ class AdmsViewCompeticao
         }
 
         $travaUpdate = new \App\adms\Models\helper\AdmsUpdate();
-        $travaUpdate->exeUpdate("adms_competicoes", ['ranking_processado' => 1], "WHERE id=:id", "id={$compId}");
+        // DOCAN FIX: Arquiva a competição após processar (status = 3)
+        $travaUpdate->exeUpdate("adms_competicoes", ['ranking_processado' => 1, 'status_inscricao' => 3], "WHERE id=:id", "id={$compId}");
 
-        $_SESSION['msg'] = "<p class='alert-success'>⭐ RANKING PROCESSADO COM SUCESSO! Todos os atletas receberam a sua pontuação (Baseada nas regras da CBTM).</p>";
+        $_SESSION['msg'] = "<p class='alert-success'>⭐ RANKING PROCESSADO COM SUCESSO! A competição foi Encerrada.</p>";
     }
 }
