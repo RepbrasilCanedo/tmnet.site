@@ -30,7 +30,6 @@ function calcularIdadeListagem($dataNascimento) {
                 if (!empty($this->data['listAtletas'])) {
                     echo $this->data['listAtletas'][0]['nome_fantasia'];
                 } else {
-                    // DOCAN FIX: Fallback caso não haja atletas ainda para este clube
                     echo "Listagem Geral";
                 }
                 ?>
@@ -90,7 +89,7 @@ function calcularIdadeListagem($dataNascimento) {
                             $posicao++;
                         }
                     } else {
-                        echo "<tr><td colspan='7' style='text-align:center; padding: 30px; color: #666;'>Nenhum atleta vinculado ao seu clube ou com inscrição aprovada.</td></tr>";
+                        echo "<tr><td colspan='7' style='text-align:center; padding: 30px; color: #666;'>Nenhum atleta filiado ao seu clube no momento.</td></tr>";
                     }
                     ?>
                 </tbody>

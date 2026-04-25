@@ -138,6 +138,30 @@ class AdmsGerirInscricoes
             if ($sucesso) {
                 $_SESSION['msg'] = "<p class='alert-success'>Status de pagamento atualizado com sucesso!</p>";
                 $this->result = true;
+
+                // ====================================================================================
+                // DOCAN FIX: FILIAÇÃO AUTOMÁTICA DO ATLETA AO CLUBE
+                // Executa a verificação e o cadastro apenas se o pagamento for Aprovado (Status = 2)
+                // ====================================================================================
+                if ($novoStatus == 2) {
+                    $readFiliacao = new \App\adms\Models\helper\AdmsRead();
+                    $readFiliacao->fullRead(
+                        "SELECT id FROM adms_atleta_clube WHERE adms_user_id = :user_id AND empresa_id = :empresa_id LIMIT 1",
+                        "user_id={$userId}&empresa_id={$empresaId}"
+                    );
+
+                    // Se a consulta voltar vazia (o atleta não é filiado a este clube), insere o registo
+                    if (!$readFiliacao->getResult()) {
+                        $createFiliacao = new \App\adms\Models\helper\AdmsCreate();
+                        $dadosFiliacao = [
+                            'adms_user_id' => $userId,
+                            'empresa_id'   => $empresaId,
+                            'created'      => date("Y-m-d H:i:s")
+                        ];
+                        $createFiliacao->exeCreate("adms_atleta_clube", $dadosFiliacao);
+                    }
+                }
+                
             } else {
                 $_SESSION['msg'] = "<p class='alert-warning'>Nenhuma alteração foi feita no banco (O status já era este).</p>";
                 $this->result = true; // Força sucesso para não trancar a tela

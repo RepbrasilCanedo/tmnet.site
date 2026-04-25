@@ -28,28 +28,25 @@ class AdmsListAtletas
         // ========================================================================
         
         if ($nivelLogado <= 2) {
-            // S-ADMIN E ADMIN DA PLATAFORMA: Vêem todos os atletas registados na empresa 1 para ativação
+            // S-ADMIN E ADMIN DA PLATAFORMA: Vêem todos os atletas registados
             $query = "SELECT usr.id, usr.name, usr.apelido, usr.estilo_jogo, usr.mao_dominante, 
                              usr.pontuacao_ranking, usr.data_nascimento, emp.nome_fantasia, emp.razao_social
                       FROM adms_users AS usr
-                      INNER JOIN adms_emp_principal AS emp ON emp.id = usr.empresa_id
+                      LEFT JOIN adms_emp_principal AS emp ON emp.id = usr.empresa_id
                       WHERE usr.adms_access_level_id = 14 
                       ORDER BY usr.pontuacao_ranking DESC";
             $listAtletas->fullRead($query);
         } else {
-            // ADMIN DE CLUBE: Vê apenas quem está filiado AO SEU CLUBE 
-            // OU quem se inscreveu num torneio DO SEU CLUBE e teve o pagamento aprovado (status 2)
-            $query = "SELECT DISTINCT usr.id, usr.name, usr.apelido, usr.estilo_jogo, usr.mao_dominante, 
+            // ========================================================================
+            // DOCAN FIX: ADMIN DE CLUBE: Vê apenas quem está na tabela 'adms_atleta_clube'
+            // ========================================================================
+            $query = "SELECT usr.id, usr.name, usr.apelido, usr.estilo_jogo, usr.mao_dominante, 
                              usr.pontuacao_ranking, usr.data_nascimento, emp.nome_fantasia, emp.razao_social
                       FROM adms_users AS usr
-                      INNER JOIN adms_emp_principal AS emp ON emp.id = :empresa_id_clube
-                      LEFT JOIN adms_inscricoes AS ins ON ins.adms_user_id = usr.id
-                      LEFT JOIN adms_competicoes AS comp ON comp.id = ins.adms_competicao_id
+                      INNER JOIN adms_atleta_clube AS ac ON ac.adms_user_id = usr.id
+                      INNER JOIN adms_emp_principal AS emp ON emp.id = ac.empresa_id
                       WHERE usr.adms_access_level_id = 14 
-                      AND (
-                          usr.clube_filiacao_id = :empresa_id_clube 
-                          OR (comp.empresa_id = :empresa_id_clube AND ins.status_pagamento_id = 2)
-                      )
+                      AND ac.empresa_id = :empresa_id_clube
                       ORDER BY usr.pontuacao_ranking DESC";
             $listAtletas->fullRead($query, "empresa_id_clube={$empresaLogada}");
         }

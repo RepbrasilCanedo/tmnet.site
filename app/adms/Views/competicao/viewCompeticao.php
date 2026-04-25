@@ -80,7 +80,7 @@ $rankingProcessado = ($detalhes['ranking_processado'] == 1);
                 <a href="<?= URLADM ?>avancar-mata-mata/index/<?= $detalhes['id'] ?>" class="btn-success <?= (!$hasMataMata || $isFinished) ? 'btn-disabled' : '' ?>" style="background-color: #0044cc;">Avançar Fase</a>
                 <a href="<?= URLADM ?>gerar-fichas-pdf/index/<?= $detalhes['id'] ?>" target="_blank" class="btn-info <?= $isFinished ? 'btn-disabled' : '' ?>" style="background-color: #17a2b8; color: white;">🖨️ Imprimir Fichas</a>
                 <a href="<?= URLADM ?>gerar-pdf-sumula/index/<?= $detalhes['id'] ?>" class="btn-warning" target="_blank" style="background-color: #ff9800; color: white;">📄 Imprimir Súmula</a>
-                <a href="<?= URLADM ?>add-partidas/index/<?= $detalhes['id'] ?>" class="btn-success <?= $isFinished ? 'btn-disabled' : '' ?>">Lançar Novo Jogo</a>
+                <!--<a href="<?= URLADM ?>add-partidas/index/<?= $detalhes['id'] ?>" class="btn-success <?= $isFinished ? 'btn-disabled' : '' ?>">Lançar Novo Jogo</a>-->
                 <a href="<?= URLADM ?>view-chave/index/<?= $detalhes['id'] ?>" class="btn-info" style="background-color: #6f42c1; color: white;">🏆 Ver Chave Gráfica</a>
                 <a href="<?= URLADM ?>painel-jogos/index/<?= $detalhes['id'] ?>" class="btn-info" target="_blank" style="background-color: #ef4444; color: white;">📺 Abrir Modo TV</a>
                 <a href="<?= URLADM ?>list-competicoes/index" class="btn-info">Voltar</a>

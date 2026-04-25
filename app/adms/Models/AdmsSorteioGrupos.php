@@ -34,13 +34,15 @@ class AdmsSorteioGrupos
 
         $ordemExtra = ($tipoGenero == 2) ? "u.genero ASC," : "";
 
-        // Traz as inscrições separadas por CATEGORIA e depois ordenadas pelo Ranking
+        // ========================================================================
+        // DOCAN FIX: Mostra apenas atletas com pagamento Aprovado(2) ou Isento(3)
+        // ========================================================================
         $read->fullRead(
             "SELECT u.id, u.name, u.apelido, u.pontuacao_ranking, u.genero, i.id as inscricao_id, c.id as cat_id, c.nome as cat_nome
              FROM adms_users u
              INNER JOIN adms_inscricoes i ON i.adms_user_id = u.id
              INNER JOIN adms_categorias c ON c.id = i.adms_categoria_id
-             WHERE i.adms_competicao_id = :comp_id
+             WHERE i.adms_competicao_id = :comp_id AND i.status_pagamento_id IN (2, 3)
              ORDER BY c.nome ASC, {$ordemExtra} u.pontuacao_ranking DESC", 
             "comp_id={$compId}"
         );
