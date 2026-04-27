@@ -39,36 +39,57 @@ class AdmsViewCompeticao
             $statusProgresso = [
                 'has_grupos' => false,
                 'has_matamata' => false,
-                'is_finished' => false,
-                'total_finais' => 0,
-                'finais_concluidas' => 0
+                'is_finished' => false
             ];
+
+            // =========================================================================
+            // DOCAN FIX: NOVA LÓGICA BLINDADA DE ENCERRAMENTO DE TORNEIO
+            // =========================================================================
+            $jogosPendentes = 0;
+            $categoriasNoTorneio = [];
+            $categoriasComFinal = [];
+            $sistemaDisputa = (int)($this->result['detalhes']['sistema_disputa'] ?? 1);
 
             if (!empty($this->result['partidas'])) {
                 foreach ($this->result['partidas'] as $p) {
+                    $catId = $p['adms_categoria_id'] ?? 0;
+                    $categoriasNoTorneio[$catId] = true;
+
+                    // Se algum jogo (qualquer um) não tem vencedor, soma pendência
+                    if (empty($p['vencedor_id']) && $p['is_wo'] == 0) {
+                        $jogosPendentes++;
+                    }
+
                     if (stripos($p['fase'], 'Grupo') !== false || stripos($p['fase'], 'Classificat') !== false) {
                         $statusProgresso['has_grupos'] = true;
                     } else {
                         $statusProgresso['has_matamata'] = true;
                     }
 
-                    // DOCAN FIX: Conta exclusivamente quantas "Finais" existem e quantas terminaram
+                    // Regista se esta categoria específica já gerou a sua grande Final
                     if ($p['fase'] === 'Final') {
-                        $statusProgresso['total_finais']++;
-                        if (!empty($p['vencedor_id']) && $p['vencedor_id'] > 0) {
-                            $statusProgresso['finais_concluidas']++;
-                        }
+                        $categoriasComFinal[$catId] = true;
                     }
                 }
             }
 
-            // =========================================================================
-            // A REGRA DE OURO: O torneio SÓ ACABA se existirem Finais E todas estiverem concluídas!
-            // =========================================================================
-            if ($statusProgresso['total_finais'] > 0 && $statusProgresso['total_finais'] === $statusProgresso['finais_concluidas']) {
-                $statusProgresso['is_finished'] = true;
+            $isFinished = false;
+            
+            // 1ª Trava: Não pode haver nenhum jogo no torneio à espera de resultado
+            if (!empty($this->result['partidas']) && $jogosPendentes === 0) {
+                
+                if ($sistemaDisputa == 2) {
+                    // Se for "Todos contra Todos" (Sem mata-mata), basta acabar os jogos
+                    $isFinished = true;
+                } else {
+                    // 2ª Trava: Se for Mata-Mata, TODAS as categorias têm de ter a sua Final gerada e jogada!
+                    if (count($categoriasNoTorneio) === count($categoriasComFinal)) {
+                        $isFinished = true;
+                    }
+                }
             }
 
+            $statusProgresso['is_finished'] = $isFinished;
             $this->result['status_progresso'] = $statusProgresso;
 
             // INTELIGÊNCIA DO PÓDIO
@@ -282,7 +303,6 @@ class AdmsViewCompeticao
         }
 
         $travaUpdate = new \App\adms\Models\helper\AdmsUpdate();
-        // DOCAN FIX: Arquiva a competição após processar (status = 3)
         $travaUpdate->exeUpdate("adms_competicoes", ['ranking_processado' => 1, 'status_inscricao' => 3], "WHERE id=:id", "id={$compId}");
 
         $_SESSION['msg'] = "<p class='alert-success'>⭐ RANKING PROCESSADO COM SUCESSO! A competição foi Encerrada.</p>";

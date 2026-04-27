@@ -17,9 +17,9 @@ class AdmsGerarFichasPdf
     {
         $read = new \App\adms\Models\helper\AdmsRead();
         
-        // DOCAN: Adicionado o LEFT JOIN para buscar o nome do árbitro!
         $read->fullRead(
-            "SELECT p.id, p.fase, p.mesa, p.horario_previsto, ua.name as atleta_a, ub.name as atleta_b, c.nome_torneio, cat.nome as cat_nome, arb.name as nome_arbitro
+            "SELECT p.id, p.fase, p.mesa, p.horario_previsto, ua.name as atleta_a, ub.name as atleta_b, 
+                    c.nome_torneio, c.data_evento, cat.nome as cat_nome, arb.name as nome_arbitro
              FROM adms_partidas p
              INNER JOIN adms_users ua ON ua.id = p.atleta_a_id
              INNER JOIN adms_users ub ON ub.id = p.atleta_b_id

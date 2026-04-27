@@ -25,7 +25,7 @@ class AdmsPainelJogos
         $isFinished = empty($read->getResult()); 
         
         // ========================================================================
-        // DOCAN FIX: Busca os jogos e agora puxa todos os dados do Placar (Sets e Pontos)
+        // DOCAN FIX: Busca TODOS os jogos pendentes escalados para alguma mesa
         // ========================================================================
         $read->fullRead(
             "SELECT p.id, p.mesa, p.status_partida, p.fase, p.horario_previsto, 
@@ -49,31 +49,28 @@ class AdmsPainelJogos
 
         $jogosGerais = $read->getResult() ?: [];
         $jogosNoPainel = [];
-        $mesasOcupadas = [];
 
         foreach ($jogosGerais as $jogo) {
-            if (!in_array($jogo['mesa'], $mesasOcupadas)) {
-                
-                // DOCAN LÓGICA: Descobre qual é o set atual que está a ser disputado!
-                $ptsA = 0; $ptsB = 0; $setAtual = 1;
-                for ($i = 5; $i >= 1; $i--) {
-                    if ($jogo["pts_set{$i}_a"] !== null || $jogo["pts_set{$i}_b"] !== null) {
-                        $ptsA = (int)$jogo["pts_set{$i}_a"];
-                        $ptsB = (int)$jogo["pts_set{$i}_b"];
-                        $setAtual = $i;
-                        break;
-                    }
+            // DOCAN FIX: Removido o filtro de mesas ocupadas. Passa TODOS os jogos para a View!
+            
+            // DOCAN LÓGICA: Descobre qual é o set atual que está a ser disputado!
+            $ptsA = 0; $ptsB = 0; $setAtual = 1;
+            for ($i = 5; $i >= 1; $i--) {
+                if ($jogo["pts_set{$i}_a"] !== null || $jogo["pts_set{$i}_b"] !== null) {
+                    $ptsA = (int)$jogo["pts_set{$i}_a"];
+                    $ptsB = (int)$jogo["pts_set{$i}_b"];
+                    $setAtual = $i;
+                    break;
                 }
-                
-                $jogo['pts_a'] = $ptsA;
-                $jogo['pts_b'] = $ptsB;
-                $jogo['set_atual'] = $setAtual;
-                $jogo['sets_atleta_a'] = (int)($jogo['sets_atleta_a'] ?? 0);
-                $jogo['sets_atleta_b'] = (int)($jogo['sets_atleta_b'] ?? 0);
-
-                $jogosNoPainel[] = $jogo;
-                $mesasOcupadas[] = $jogo['mesa'];
             }
+            
+            $jogo['pts_a'] = $ptsA;
+            $jogo['pts_b'] = $ptsB;
+            $jogo['set_atual'] = $setAtual;
+            $jogo['sets_atleta_a'] = (int)($jogo['sets_atleta_a'] ?? 0);
+            $jogo['sets_atleta_b'] = (int)($jogo['sets_atleta_b'] ?? 0);
+
+            $jogosNoPainel[] = $jogo;
         }
 
         // =========================================================
