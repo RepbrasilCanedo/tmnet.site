@@ -63,6 +63,10 @@ $torneioAtivo = $this->data['torneio_selecionado'] ?? null;
         <?php if ($torneioAtivo): ?>
             <div style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #0044cc; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <h3 style="margin: 0; color: #0044cc;">Total de Inscritos: <?= count($inscritos) ?> atleta(s)</h3>
+                
+                <a href="<?= URLADM ?>gerar-pdf-inscritos/index/<?= $torneioAtivo ?>" target="_blank" class="btn-acao" style="background: #333; padding: 10px 20px; font-size: 14px;">
+                    <i class="fa-solid fa-file-pdf" style="color: #ff4757;"></i> Imprimir Relatório
+                </a>
             </div>
 
             <div style="overflow-x: auto;">
@@ -80,7 +84,6 @@ $torneioAtivo = $this->data['torneio_selecionado'] ?? null;
                     <tbody>
                         <?php if (!empty($inscritos)): ?>
                             <?php foreach ($inscritos as $ins): 
-                                // Ajusta o nome do badge da Modalidade
                                 $lblModalidade = 'Geral';
                                 if($ins['tipo_inscricao'] === 'Socio') $lblModalidade = 'Sócio/Convênio';
                                 if($ins['tipo_inscricao'] === 'Estudante') $lblModalidade = 'Estudante';
