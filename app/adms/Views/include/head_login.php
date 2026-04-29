@@ -20,7 +20,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     
     <link rel="stylesheet" href="<?php echo URLADM; ?>app/adms/assets/css/custom_login.css">
     
-    <title>Docnet - Login</title>
+    <title>Tmnet - Login</title>
 </head>
 
 <body>
