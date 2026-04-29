@@ -81,11 +81,19 @@ class AdmsEditCompeticao
             $dados[$cp] = empty($dados[$cp]) ? 0 : (int)$dados[$cp];
         }
 
-        if(isset($dados['valor_uma_categoria'])) {
-            $dados['valor_uma_categoria'] = empty($dados['valor_uma_categoria']) ? 0.00 : str_replace(',', '.', $dados['valor_uma_categoria']);
-        }
-        if(isset($dados['valor_duas_categorias'])) {
-            $dados['valor_duas_categorias'] = empty($dados['valor_duas_categorias']) ? 0.00 : str_replace(',', '.', $dados['valor_duas_categorias']);
+        // ========================================================================
+        // DOCAN FIX: Tratamento dos Valores Financeiros (Geral, Sócio e Estudante)
+        // ========================================================================
+        $camposFinanceiros = [
+            'valor_uma_categoria', 'valor_duas_categorias', 
+            'valor_uma_socio', 'valor_duas_socio', 
+            'valor_uma_estudante', 'valor_duas_estudante'
+        ];
+
+        foreach ($camposFinanceiros as $campo) {
+            if (isset($dados[$campo])) {
+                $dados[$campo] = empty($dados[$campo]) ? 0.00 : str_replace(',', '.', $dados[$campo]);
+            }
         }
 
         $dados['modified'] = date("Y-m-d H:i:s");

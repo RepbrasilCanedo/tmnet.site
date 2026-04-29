@@ -70,12 +70,21 @@ class AdmsAddCompeticao
                 $this->data[$cp] = empty($this->data[$cp]) ? 0 : (int)$this->data[$cp];
             }
 
-            // DOCAN FIX: Tratamento dos Valores Financeiros (Substitui vírgula por ponto para o SQL aceitar)
-            if(!empty($this->data['valor_uma_categoria'])) {
-                $this->data['valor_uma_categoria'] = str_replace(',', '.', $this->data['valor_uma_categoria']);
-            }
-            if(!empty($this->data['valor_duas_categorias'])) {
-                $this->data['valor_duas_categorias'] = str_replace(',', '.', $this->data['valor_duas_categorias']);
+            // ========================================================================
+            // DOCAN FIX: Tratamento dos Valores Financeiros (Geral, Sócio e Estudante)
+            // ========================================================================
+            $camposFinanceiros = [
+                'valor_uma_categoria', 'valor_duas_categorias', 
+                'valor_uma_socio', 'valor_duas_socio', 
+                'valor_uma_estudante', 'valor_duas_estudante'
+            ];
+
+            foreach ($camposFinanceiros as $campo) {
+                if(!empty($this->data[$campo])) {
+                    $this->data[$campo] = str_replace(',', '.', $this->data[$campo]);
+                } else {
+                    $this->data[$campo] = 0.00;
+                }
             }
 
             $createComp = new \App\adms\Models\helper\AdmsCreate();

@@ -44,11 +44,11 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                     <div class="column">
                         <label class="title-input">Nível / Chancela do Torneio</label>
                         <select name="categoria_cbtm" class="input-adm">
-                            <option value="Campeonato Estadual">Campeonato Estadual</option>
-                            <option value="Etapa">Etapa</option>
                             <option value="Torneio Aberto">Torneio Aberto</option>
-                            <option value="Liga Regional">Liga Regional / Municipal</option>
                             <option value="Torneio Interno">Torneio Interno (Clube)</option>
+                            <option value="Campeonato Estadual">Campeonato</option>
+                            <option value="Etapa">Etapa</option>
+                            <option value="Festival">Rachão</option>
                             <option value="Festival">Festival / Iniciante</option>
                         </select>
                     </div>
@@ -64,39 +64,57 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 
                 <div style="background: #eef2fa; padding: 15px; border-radius: 8px; border: 1px solid #0044cc; margin-bottom: 20px;">
                     <h5 style="margin-top: 0; color: #0044cc; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Categorias e Divisões em Disputa</h5>
-                    <p style="font-size: 13px; color: #555; margin-bottom: 10px;">Selecione quais categorias irão acontecer neste torneio. Apenas atletas que cumprirem os requisitos de Idade e Rating poderão se inscrever nas opções marcadas abaixo.</p>
-                    
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
                         <?php if (!empty($this->data['categorias_clube'])): ?>
                             <?php foreach ($this->data['categorias_clube'] as $cat): ?>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                                    <input type="checkbox" name="categorias_ids[]" value="<?= $cat['id'] ?>" style="width: 16px; height: 16px; cursor: pointer;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <input type="checkbox" name="categorias_ids[]" value="<?= $cat['id'] ?>" style="width: 16px; height: 16px;">
                                     <span style="font-size: 14px; font-weight: bold; color: #333;"><?= $cat['nome'] ?></span>
                                 </label>
                             <?php endforeach; ?>
-                        <?php else: ?>
-                            <div style="grid-column: 1 / -1; background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; border: 1px solid #ffeeba;">
-                                ⚠️ Nenhuma categoria cadastrada no seu clube. <a href="<?= URLADM ?>add-categoria/index" style="color: #0044cc; font-weight: bold;">Clique aqui para criar</a> antes de agendar o torneio.
-                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
 
                 <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #c3e6cb; margin-bottom: 20px;">
-                    <h5 style="margin-top: 0; color: #155724; border-bottom: 1px solid #c3e6cb; padding-bottom: 5px;">💰 Valores e Forma de Pagamento</h5>
-                    <p style="font-size: 13px; color: #155724; margin-bottom: 15px;">Defina os valores das inscrições. O limite do sistema é de 2 categorias por atleta.</p>
+                    <h5 style="margin-top: 0; color: #155724; border-bottom: 1px solid #c3e6cb; padding-bottom: 10px;">💰 Tabela de Valores das Inscrições</h5>
                     
                     <div class="row-input">
                         <div class="column">
-                            <label class="title-input" style="color: #155724;">Valor para UMA Categoria (R$):</label>
-                            <input type="text" name="valor_uma_categoria" class="input-adm" placeholder="Ex: 50.00" value="<?= $this->data['form']['valor_uma_categoria'] ?? '' ?>">
+                            <label class="title-input" style="color: #155724;">Geral: 1 Categoria (R$)</label>
+                            <input type="text" name="valor_uma_categoria" class="input-adm" placeholder="Ex: 50,00" value="<?= $this->data['form']['valor_uma_categoria'] ?? '' ?>">
                         </div>
                         <div class="column">
-                            <label class="title-input" style="color: #155724;">Valor para DUAS Categorias (R$):</label>
-                            <input type="text" name="valor_duas_categorias" class="input-adm" placeholder="Ex: 80.00" value="<?= $this->data['form']['valor_duas_categorias'] ?? '' ?>">
+                            <label class="title-input" style="color: #155724;">Geral: 2 Categorias (R$)</label>
+                            <input type="text" name="valor_duas_categorias" class="input-adm" placeholder="Ex: 80,00" value="<?= $this->data['form']['valor_duas_categorias'] ?? '' ?>">
+                        </div>
+                    </div>
+
+                    <div class="row-input" style="margin-top: 15px;">
+                        <div class="column">
+                            <label class="title-input" style="color: #0044cc;">Sócio/Convênio: 1 Cat (R$)</label>
+                            <input type="text" name="valor_uma_socio" class="input-adm" placeholder="Ex: 40,00" value="<?= $this->data['form']['valor_uma_socio'] ?? '' ?>">
                         </div>
                         <div class="column">
-                            <label class="title-input" style="color: #155724;">Chave PIX (Para receber):<span class="text-danger">*</span></label>
+                            <label class="title-input" style="color: #0044cc;">Sócio/Convênio: 2 Cat (R$)</label>
+                            <input type="text" name="valor_duas_socio" class="input-adm" placeholder="Ex: 70,00" value="<?= $this->data['form']['valor_duas_socio'] ?? '' ?>">
+                        </div>
+                    </div>
+
+                    <div class="row-input" style="margin-top: 15px;">
+                        <div class="column">
+                            <label class="title-input" style="color: #e67e22;">Estudante: 1 Cat (R$)</label>
+                            <input type="text" name="valor_uma_estudante" class="input-adm" placeholder="Ex: 25,00" value="<?= $this->data['form']['valor_uma_estudante'] ?? '' ?>">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #e67e22;">Estudante: 2 Cat (R$)</label>
+                            <input type="text" name="valor_duas_estudante" class="input-adm" placeholder="Ex: 45,00" value="<?= $this->data['form']['valor_duas_estudante'] ?? '' ?>">
+                        </div>
+                    </div>
+
+                    <div class="row-input" style="margin-top: 15px;">
+                        <div class="column">
+                            <label class="title-input" style="color: #155724;">Chave PIX do Clube:<span class="text-danger">*</span></label>
                             <input type="text" name="chave_pix" class="input-adm" placeholder="E-mail, CPF, Celular..." value="<?= $this->data['form']['chave_pix'] ?? '' ?>" required>
                         </div>
                     </div>
@@ -105,7 +123,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                 <div class="row-input">
                     <div class="column">
                         <label class="title-input">Local / Ginásio</label>
-                        <input type="text" name="local_evento" class="input-adm" placeholder="Ex: Sede do Clube / Ginásio Poliesportivo" value="<?= $this->data['form']['local_evento'] ?? '' ?>">
+                        <input type="text" name="local_evento" class="input-adm" value="<?= $this->data['form']['local_evento'] ?? '' ?>">
                     </div>
                     <div class="column">
                         <label class="title-input">Sistema de Disputa</label>
@@ -125,41 +143,37 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 
                 <div style="background: #fdf5e6; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 20px; margin-top: 10px;">
                     <label class="title-input" style="color: #856404; font-size: 18px; margin-bottom: 5px;">🏆 Pontuação para o Ranking Geral</label>
-                    <p style="font-size: 13px; color: #666; margin-top: 0; margin-bottom: 15px;">Configure os pontos que este torneio distribuirá. <br><i>Se deixar tudo Zerado, o torneio será considerado "Amistoso" e não valerá pontos para o ranking.</i></p>
-                    
                     <div class="row-input">
                         <div class="column">
                             <label class="title-input" style="color: #d4af37;">🥇 Campeão (1º)</label>
-                            <input type="number" name="pts_campeao" class="input-adm" placeholder="Ex: 300" value="0">
+                            <input type="number" name="pts_campeao" class="input-adm" value="0">
                         </div>
                         <div class="column">
                             <label class="title-input" style="color: #a9a9a9;">🥈 Vice (2º)</label>
-                            <input type="number" name="pts_vice" class="input-adm" placeholder="Ex: 150" value="0">
+                            <input type="number" name="pts_vice" class="input-adm" value="0">
                         </div>
                         <div class="column">
                             <label class="title-input" style="color: #cd7f32;">🥉 Terceiros (Semi)</label>
-                            <input type="number" name="pts_terceiro" class="input-adm" placeholder="Ex: 100" value="0">
+                            <input type="number" name="pts_terceiro" class="input-adm" value="0">
                         </div>
                         <div class="column">
                             <label class="title-input" style="color: #555;">🏅 5º ao 8º (Quartas)</label>
-                            <input type="number" name="pts_quartas" class="input-adm" placeholder="Ex: 50" value="0">
+                            <input type="number" name="pts_quartas" class="input-adm" value="0">
                         </div>
                     </div>
-                    
                     <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
-                    
                     <div class="row-input">
                         <div class="column">
-                            <label class="title-input" style="color: #17a2b8;">🤝 Pts por Participação</label>
-                            <input type="number" name="pts_participacao" class="input-adm" placeholder="Ex: 50" value="0">
+                            <label class="title-input" style="color: #17a2b8;">🤝 Participação</label>
+                            <input type="number" name="pts_participacao" class="input-adm" value="0">
                         </div>
                         <div class="column">
-                            <label class="title-input" style="color: #28a745;">✅ Pts por Vitória (Fixa)</label>
-                            <input type="number" name="pts_vitoria_jogo" class="input-adm" placeholder="Ex: 10" value="0">
+                            <label class="title-input" style="color: #28a745;">✅ Vitória</label>
+                            <input type="number" name="pts_vitoria_jogo" class="input-adm" value="0">
                         </div>
                         <div class="column">
-                            <label class="title-input" style="color: #dc3545;">❌ Pts por Derrota (Fixa)</label>
-                            <input type="number" name="pts_derrota_jogo" class="input-adm" placeholder="Ex: 5" value="0">
+                            <label class="title-input" style="color: #dc3545;">❌ Derrota</label>
+                            <input type="number" name="pts_derrota_jogo" class="input-adm" value="0">
                         </div>
                     </div>
                 </div>
@@ -167,7 +181,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                 <div class="row-input">
                     <div class="column">
                         <label class="title-input">Observações do Torneio</label>
-                        <textarea name="observacoes" class="input-adm" rows="3" placeholder="Informações sobre inscrições, taxas ou regulamento específico..."><?= $this->data['form']['observacoes'] ?? '' ?></textarea>
+                        <textarea name="observacoes" class="input-adm" rows="3"><?= $this->data['form']['observacoes'] ?? '' ?></textarea>
                     </div>
                 </div>
 

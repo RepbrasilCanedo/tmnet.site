@@ -79,7 +79,12 @@ $torneioAtivo = $this->data['torneio_selecionado'] ?? null;
                     </thead>
                     <tbody>
                         <?php if (!empty($inscritos)): ?>
-                            <?php foreach ($inscritos as $ins): ?>
+                            <?php foreach ($inscritos as $ins): 
+                                // Ajusta o nome do badge da Modalidade
+                                $lblModalidade = 'Geral';
+                                if($ins['tipo_inscricao'] === 'Socio') $lblModalidade = 'Sócio/Convênio';
+                                if($ins['tipo_inscricao'] === 'Estudante') $lblModalidade = 'Estudante';
+                            ?>
                                 <tr>
                                     <td><strong><?= $ins['atleta'] ?></strong></td>
                                     <td>
@@ -92,7 +97,10 @@ $torneioAtivo = $this->data['torneio_selecionado'] ?? null;
                                     </td>
                                     <td><?= $ins['categorias_str'] ?></td>
                                     <td style="text-align: center; font-weight: bold; color: #0044cc;">
-                                        R$ <?= number_format($ins['valor_total'], 2, ',', '.') ?>
+                                        R$ <?= number_format($ins['valor_total'], 2, ',', '.') ?><br>
+                                        <span style="font-size: 10px; color: #666; font-weight: normal; background: #eee; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;">
+                                            <?= $lblModalidade ?>
+                                        </span>
                                     </td>
                                     <td style="text-align: center;">
                                         <?php if($ins['status_pagamento_id'] == 1): ?>
@@ -108,11 +116,11 @@ $torneioAtivo = $this->data['torneio_selecionado'] ?? null;
                                             <input type="hidden" name="user_id" value="<?= $ins['user_id'] ?>">
                                             <input type="hidden" name="comp_id" value="<?= $torneioAtivo ?>">
                                             
-                                            <?php if($ins['status_pagamento_id'] == 1): // Se estiver aguardando, mostra Aprovar ?>
+                                            <?php if($ins['status_pagamento_id'] == 1): ?>
                                                 <button type="submit" name="AcaoStatus" value="aprovar" class="btn-acao btn-aprovar" title="Confirmar Recebimento PIX">
                                                     <i class="fa-solid fa-check"></i> Aprovar
                                                 </button>
-                                            <?php else: // Se já estiver aprovado, mostra voltar para pendente ?>
+                                            <?php else: ?>
                                                 <button type="submit" name="AcaoStatus" value="pendente" class="btn-acao btn-pendente" title="Voltar para Aguardando Pagamento" onclick="return confirm('Tem certeza que deseja remover o status de Pago deste atleta?');">
                                                     <i class="fa-solid fa-rotate-left"></i> Desfazer
                                                 </button>

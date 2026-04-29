@@ -96,17 +96,42 @@ $categoriasSelecionadas = $valorForm['categorias_selecionadas'] ?? [];
                 </div>
 
                 <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #c3e6cb; margin-bottom: 20px;">
-                    <h5 style="margin-top: 0; color: #155724; border-bottom: 1px solid #c3e6cb; padding-bottom: 5px;">💰 Valores e Forma de Pagamento</h5>
+                    <h5 style="margin-top: 0; color: #155724; border-bottom: 1px solid #c3e6cb; padding-bottom: 10px;">💰 Valores e Forma de Pagamento</h5>
                     
                     <div class="row-input">
                         <div class="column">
-                            <label class="title-input" style="color: #155724;">Valor para UMA Categoria (R$):</label>
+                            <label class="title-input" style="color: #155724;">Geral: 1 Categoria (R$)</label>
                             <input type="text" name="valor_uma_categoria" class="input-adm" placeholder="Ex: 50.00" value="<?= $valorForm['valor_uma_categoria'] ?? '' ?>">
                         </div>
                         <div class="column">
-                            <label class="title-input" style="color: #155724;">Valor para DUAS Categorias (R$):</label>
+                            <label class="title-input" style="color: #155724;">Geral: 2 Categorias (R$)</label>
                             <input type="text" name="valor_duas_categorias" class="input-adm" placeholder="Ex: 80.00" value="<?= $valorForm['valor_duas_categorias'] ?? '' ?>">
                         </div>
+                    </div>
+
+                    <div class="row-input" style="margin-top: 15px;">
+                        <div class="column">
+                            <label class="title-input" style="color: #0044cc;">Sócio/Convênio: 1 Cat (R$)</label>
+                            <input type="text" name="valor_uma_socio" class="input-adm" placeholder="Ex: 40.00" value="<?= $valorForm['valor_uma_socio'] ?? '' ?>">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #0044cc;">Sócio/Convênio: 2 Cat (R$)</label>
+                            <input type="text" name="valor_duas_socio" class="input-adm" placeholder="Ex: 70.00" value="<?= $valorForm['valor_duas_socio'] ?? '' ?>">
+                        </div>
+                    </div>
+
+                    <div class="row-input" style="margin-top: 15px;">
+                        <div class="column">
+                            <label class="title-input" style="color: #e67e22;">Estudante: 1 Cat (R$)</label>
+                            <input type="text" name="valor_uma_estudante" class="input-adm" placeholder="Ex: 25.00" value="<?= $valorForm['valor_uma_estudante'] ?? '' ?>">
+                        </div>
+                        <div class="column">
+                            <label class="title-input" style="color: #e67e22;">Estudante: 2 Cat (R$)</label>
+                            <input type="text" name="valor_duas_estudante" class="input-adm" placeholder="Ex: 45.00" value="<?= $valorForm['valor_duas_estudante'] ?? '' ?>">
+                        </div>
+                    </div>
+
+                    <div class="row-input" style="margin-top: 15px;">
                         <div class="column">
                             <label class="title-input" style="color: #155724;">Chave PIX (Para receber):<span class="text-danger">*</span></label>
                             <input type="text" name="chave_pix" class="input-adm" placeholder="E-mail, CPF, Celular..." value="<?= $valorForm['chave_pix'] ?? '' ?>" required>

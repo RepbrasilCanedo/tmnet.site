@@ -30,7 +30,6 @@ class GerirInscricoes
         // 2. Processa Ações de Pagamento (Botões Aprovar / Desfazer)
         $postData = filter_input_array(INPUT_POST, FILTER_DEFAULT);
         
-        // Se houver POST de Ação, processa e morre aqui, redirecionando o utilizador
         if (!empty($postData['AcaoStatus'])) {
             $uId = (int)$postData['user_id'];
             $cId = (int)$postData['comp_id'];
@@ -41,7 +40,6 @@ class GerirInscricoes
                 $model->alterarStatusPagamento($uId, $cId, 1); // 1 = Aguardando
             }
             
-            // Força o redirecionamento com um JavaScript seguro caso o header() do PHP bloqueie
             echo "<script>window.location.href = '" . URLADM . "gerir-inscricoes/index?comp=" . $cId . "';</script>";
             exit;
         }

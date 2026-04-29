@@ -3,7 +3,6 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     header("Location: /");
     die("Erro: Página não encontrada<br>");
 }
-//var_dump($this->data); die;
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -32,6 +31,13 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     .badge-ok { background-color: #28a745; color: white; padding: 2px 8px; border-radius: 12px; }
     .badge-warn { background-color: #ffc107; color: #333; padding: 2px 8px; border-radius: 12px; }
     .badge-info { background-color: #17a2b8; color: white; padding: 2px 8px; border-radius: 12px; }
+    
+    /* Estilo dos Radio Buttons de Tipo de Inscrição */
+    .tipo-insc-box { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; justify-content: center; }
+    .tipo-insc-box label { background: #fff; border: 1px solid #ccc; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; color: #555; }
+    .tipo-insc-box input[type="radio"] { display: none; }
+    .tipo-insc-box input[type="radio"]:checked + span { color: #0044cc; }
+    .tipo-insc-box label:has(input[type="radio"]:checked) { border-color: #0044cc; background: #eef2fa; }
 </style>
 
 <div class="dash-wrapper">
@@ -62,17 +68,22 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                     $jaInscrito = !empty($torneio['categorias_inscritas']);
                     $arrayInscritas = $jaInscrito ? explode(',', $torneio['categorias_inscritas']) : [];
                     $statusPag = $torneio['status_pagamento'] ?? 1;
+                    $tipoSalvo = $torneio['tipo_inscricao_salvo'] ?? 'Geral';
                     
                     $logoClube = (!empty($torneio['clube_logo']) && file_exists("app/adms/assets/image/logo/clientes/" . $torneio['clube_id'] . "/" . $torneio['clube_logo']))
                         ? URLADM . "app/adms/assets/image/logo/clientes/" . $torneio['clube_id'] . "/" . $torneio['clube_logo']
                         : URLADM . "app/adms/assets/image/logo/clientes/logo_padrao.png";
 
-                    $valUma = (float)($torneio['valor_uma_categoria'] ?? 0);
-                    $valDuas = (float)($torneio['valor_duas_categorias'] ?? 0);
+                    $valUmaGeral = (float)($torneio['valor_uma_categoria'] ?? 0);
+                    $valDuasGeral = (float)($torneio['valor_duas_categorias'] ?? 0);
+                    $valUmaSocio = (float)($torneio['valor_uma_socio'] ?? 0);
+                    $valDuasSocio = (float)($torneio['valor_duas_socio'] ?? 0);
+                    $valUmaEst = (float)($torneio['valor_uma_estudante'] ?? 0);
+                    $valDuasEst = (float)($torneio['valor_duas_estudante'] ?? 0);
                     
                     $valorInicial = 0;
-                    if(count($arrayInscritas) == 1) $valorInicial = $valUma;
-                    if(count($arrayInscritas) == 2) $valorInicial = $valDuas;
+                    if(count($arrayInscritas) == 1) $valorInicial = $valUmaGeral;
+                    if(count($arrayInscritas) == 2) $valorInicial = $valDuasGeral;
                 ?>
                     <div class="card-torneio" style="<?= $jaInscrito ? 'border-top-color: #28a745;' : '' ?>">
                         <div class="vitrine-header" style="display: flex; align-items: center; gap: 15px;">
@@ -107,9 +118,36 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                         </div>
                         
                         <div class="card-footer">
-                            <form method="POST" action="">
+                            <form method="POST" action="" 
+                                  data-uma-geral="<?= $valUmaGeral ?>" data-duas-geral="<?= $valDuasGeral ?>"
+                                  data-uma-socio="<?= $valUmaSocio ?>" data-duas-socio="<?= $valDuasSocio ?>"
+                                  data-uma-est="<?= $valUmaEst ?>" data-duas-est="<?= $valDuasEst ?>">
+                                
                                 <input type="hidden" name="competicao_id" value="<?= $torneio['id'] ?>">
                                 
+                                <?php if (!empty($torneio['categorias_elegiveis'])): ?>
+                                    <div class="tipo-insc-box">
+                                        <label>
+                                            <input type="radio" name="tipo_inscricao" value="Geral" <?= ($tipoSalvo == 'Geral') ? 'checked' : '' ?> onchange="atualizarValor(this)">
+                                            <span><i class="fa-solid fa-user"></i> Geral</span>
+                                        </label>
+                                        
+                                        <?php if($valUmaSocio > 0 || $valDuasSocio > 0): ?>
+                                            <label>
+                                                <input type="radio" name="tipo_inscricao" value="Socio" <?= ($tipoSalvo == 'Socio') ? 'checked' : '' ?> onchange="atualizarValor(this)">
+                                                <span><i class="fa-solid fa-id-card"></i> Sócio / Convênio</span>
+                                            </label>
+                                        <?php endif; ?>
+                                        
+                                        <?php if($valUmaEst > 0 || $valDuasEst > 0): ?>
+                                            <label>
+                                                <input type="radio" name="tipo_inscricao" value="Estudante" <?= ($tipoSalvo == 'Estudante') ? 'checked' : '' ?> onchange="atualizarValor(this)">
+                                                <span><i class="fa-solid fa-graduation-cap"></i> Estudante</span>
+                                            </label>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+
                                 <div class="box-divisao">
                                     <strong style="display: block; margin-bottom: 10px; font-size: 13px; color: #333;">
                                         <i class="fa-solid fa-list-check"></i> Escolha suas Categorias:
@@ -125,7 +163,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                                             $checked = in_array($cat['id'], $arrayInscritas) ? 'checked' : '';
                                         ?>
                                             <label>
-                                                <input type="checkbox" name="categorias_selecionadas[]" value="<?= $cat['id'] ?>" <?= $checked ?> style="width: 18px; height: 18px; cursor: pointer;" onclick="atualizarValor(this, <?= $valUma ?>, <?= $valDuas ?>)"> 
+                                                <input type="checkbox" name="categorias_selecionadas[]" value="<?= $cat['id'] ?>" <?= $checked ?> style="width: 18px; height: 18px; cursor: pointer;" onclick="atualizarValor(this)"> 
                                                 <?= $cat['nome'] ?>
                                             </label>
                                         <?php endforeach; ?>
@@ -142,7 +180,7 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 
                                 <?php if (!empty($torneio['categorias_elegiveis'])): ?>
                                     <div class="box-pix">
-                                        <p><strong>1 Cat:</strong> R$ <?= number_format($valUma, 2, ',', '.') ?> | <strong>2 Cat:</strong> R$ <?= number_format($valDuas, 2, ',', '.') ?></p>
+                                        <p><strong>1 Cat:</strong> R$ <span class="lbl-val-uma"><?= number_format($valUmaGeral, 2, ',', '.') ?></span> | <strong>2 Cat:</strong> R$ <span class="lbl-val-duas"><?= number_format($valDuasGeral, 2, ',', '.') ?></span></p>
                                         <p>Chave PIX do Organizador:</p>
                                         <div class="chave"><?= !empty($torneio['chave_pix']) ? $torneio['chave_pix'] : 'Não informada' ?></div>
                                         
@@ -182,23 +220,49 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
 </div>
 
 <script>
-    function atualizarValor(checkbox, valorUma, valorDuas) {
-        const form = checkbox.closest('form');
-        const marcados = form.querySelectorAll('input[type="checkbox"]:checked').length;
-        const displayTotal = form.querySelector('.valor-dinamico');
+    function atualizarValor(elemento) {
+        const form = elemento.closest('form');
+        const marcados = form.querySelectorAll('input[type="checkbox"][name="categorias_selecionadas[]"]:checked').length;
+        const tipoEscolhido = form.querySelector('input[type="radio"][name="tipo_inscricao"]:checked').value;
         
-        if (marcados > 2) {
-            checkbox.checked = false; 
+        const displayTotal = form.querySelector('.valor-dinamico');
+        const lblUma = form.querySelector('.lbl-val-uma');
+        const lblDuas = form.querySelector('.lbl-val-duas');
+        
+        if (marcados > 2 && elemento.type === 'checkbox') {
+            elemento.checked = false; 
             alert('Atenção: O regulamento permite apenas 2 inscrições por torneio!');
-            return; 
+            return atualizarValor(elemento);
         }
+
+        let precoUma = parseFloat(form.getAttribute('data-uma-geral'));
+        let precoDuas = parseFloat(form.getAttribute('data-duas-geral'));
+
+        if (tipoEscolhido === 'Socio') {
+            precoUma = parseFloat(form.getAttribute('data-uma-socio'));
+            precoDuas = parseFloat(form.getAttribute('data-duas-socio'));
+        } else if (tipoEscolhido === 'Estudante') {
+            precoUma = parseFloat(form.getAttribute('data-uma-est'));
+            precoDuas = parseFloat(form.getAttribute('data-duas-est'));
+        }
+
+        if(lblUma) lblUma.innerHTML = precoUma.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if(lblDuas) lblDuas.innerHTML = precoDuas.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         let total = 0;
-        if (marcados === 1) total = valorUma;
-        if (marcados === 2) total = valorDuas;
+        if (marcados === 1) total = precoUma;
+        if (marcados === 2) total = precoDuas;
 
         if(displayTotal) {
-            displayTotal.innerHTML = parseFloat(total).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            displayTotal.innerHTML = total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
     }
+
+    // DOCAN FIX: Garante que os preços são recalculados ao carregar a página com o valor que veio do banco!
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('form').forEach(form => {
+            const radioAtivo = form.querySelector('input[type="radio"]:checked');
+            if(radioAtivo) atualizarValor(radioAtivo);
+        });
+    });
 </script>

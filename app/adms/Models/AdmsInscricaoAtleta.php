@@ -23,7 +23,8 @@ class AdmsInscricaoAtleta
         $atleta = $read->getResult()[0] ?? null;
 
         $campos = "c.id, c.nome_torneio, c.data_evento, c.local_evento, c.categoria_cbtm, c.fator_multiplicador, 
-                   c.categorias_selecionadas, c.valor_uma_categoria, c.valor_duas_categorias, c.chave_pix,
+                   c.categorias_selecionadas, c.valor_uma_categoria, c.valor_duas_categorias, 
+                   c.valor_uma_socio, c.valor_duas_socio, c.valor_uma_estudante, c.valor_duas_estudante, c.chave_pix,
                    emp.nome_fantasia as clube_nome, emp.logo as clube_logo, emp.id as clube_id";
 
         if ($torneioId) {
@@ -44,8 +45,9 @@ class AdmsInscricaoAtleta
         
         $torneios = $read->getResult() ?: [];
 
+        // DOCAN FIX: Busca o tipo_inscricao (Geral, Socio, Estudante) salvo no banco
         $read->fullRead(
-            "SELECT adms_competicao_id, adms_categoria_id, status_pagamento_id 
+            "SELECT adms_competicao_id, adms_categoria_id, status_pagamento_id, tipo_inscricao 
              FROM adms_inscricoes WHERE adms_user_id = :user_id", 
             "user_id={$userId}"
         );
@@ -53,6 +55,7 @@ class AdmsInscricaoAtleta
 
         $inscricoesPorTorneio = [];
         $statusPorTorneio = [];
+        $tipoPorTorneio = [];
         
         foreach ($minhasInscricoes as $insc) {
             $compId = $insc['adms_competicao_id'];
@@ -61,6 +64,7 @@ class AdmsInscricaoAtleta
             }
             $inscricoesPorTorneio[$compId][] = $insc['adms_categoria_id'];
             $statusPorTorneio[$compId] = $insc['status_pagamento_id'] ?? 1; 
+            $tipoPorTorneio[$compId] = $insc['tipo_inscricao'] ?? 'Geral';
         }
 
         $ratingAtleta = (float)($atleta['pontuacao_ranking'] ?? 0);
@@ -68,16 +72,15 @@ class AdmsInscricaoAtleta
         foreach ($torneios as $key => $t) {
             $torneios[$key]['categorias_inscritas'] = isset($inscricoesPorTorneio[$t['id']]) ? implode(',', $inscricoesPorTorneio[$t['id']]) : '';
             $torneios[$key]['status_pagamento'] = $statusPorTorneio[$t['id']] ?? 1;
+            $torneios[$key]['tipo_inscricao_salvo'] = $tipoPorTorneio[$t['id']] ?? 'Geral'; // Passa o tipo salvo para a View
 
             $idadeAtleta = 0;
-            // DOCAN FIX: Proteção contra data '0000-00-00'
             if (!empty($atleta['data_nascimento']) && $atleta['data_nascimento'] !== '0000-00-00') {
                 $nascimento = new \DateTime($atleta['data_nascimento']);
                 $dataEvento = new \DateTime($t['data_evento']);
                 $idadeAtleta = $nascimento->diff($dataEvento)->y;
             }
 
-            // Pega as categorias selecionadas e limpa qualquer lixo
             $stringCats = (string)($t['categorias_selecionadas'] ?? '');
             $stringCats = preg_replace('/[^0-9,]/', '', $stringCats); 
             $catIdsArray = array_filter(explode(',', $stringCats));
@@ -85,26 +88,20 @@ class AdmsInscricaoAtleta
             $torneios[$key]['tem_categorias_configuradas'] = !empty($catIdsArray);
             $elegiveis = [];
 
-            // ====================================================================
-            // DOCAN FIX BLINDADO: A busca é feita DIRETAMENTE pelo ID via Banco de Dados!
-            // ====================================================================
             if (!empty($catIdsArray)) {
-                $idsCsv = implode(',', $catIdsArray); // Ex: '20,21'
+                $idsCsv = implode(',', $catIdsArray); 
                 $readCat = new \App\adms\Models\helper\AdmsRead();
                 
-                // Pede ao banco APENAS as categorias deste torneio específico
                 $readCat->fullRead("SELECT * FROM adms_categorias WHERE id IN ({$idsCsv})");
                 $catsDoTorneio = $readCat->getResult() ?: [];
 
                 foreach ($catsDoTorneio as $cat) {
                     $apto = true;
 
-                    // Converte NULLs e textos vazios para Zero
                     $idadeMin = (isset($cat['idade_minima']) && is_numeric($cat['idade_minima'])) ? (int)$cat['idade_minima'] : 0;
                     $idadeMax = (isset($cat['idade_maxima']) && is_numeric($cat['idade_maxima'])) ? (int)$cat['idade_maxima'] : 0;
                     $ratingMax = (isset($cat['pontuacao_maxima']) && is_numeric($cat['pontuacao_maxima'])) ? (float)$cat['pontuacao_maxima'] : 0;
 
-                    // Só barra se o valor mínimo for estritamente MAIOR que zero
                     if ($idadeMin > 0 && $idadeAtleta < $idadeMin) $apto = false;
                     if ($idadeMax > 0 && $idadeAtleta > $idadeMax) $apto = false;
                     if ($ratingMax > 0 && $ratingAtleta > $ratingMax) $apto = false;
@@ -125,6 +122,7 @@ class AdmsInscricaoAtleta
     {
         $compId = (int)$dados['competicao_id'];
         $userId = (int)$_SESSION['user_id']; 
+        $tipoInscricao = $dados['tipo_inscricao'] ?? 'Geral'; // Captura a modalidade escolhida
 
         if (empty($dados['categorias_selecionadas'])) {
             $_SESSION['msg'] = "<p class='alert-warning'>Você deve escolher pelo menos uma categoria/divisão!</p>";
@@ -197,13 +195,14 @@ class AdmsInscricaoAtleta
                 'adms_user_id' => $userId,
                 'adms_categoria_id' => (int)$catId,
                 'status_pagamento_id' => $statusAtual,
+                'tipo_inscricao' => $tipoInscricao, // Grava a modalidade escolhida
                 'created' => date("Y-m-d H:i:s")
             ];
             $create->exeCreate("adms_inscricoes", $dadosInscricao);
             $qtdInscricoes++;
         }
 
-        $_SESSION['msg'] = "<p class='alert-success'>🚀 Sucesso! Inscrição confirmada em {$qtdInscricoes} categoria(s).</p>";
+        $_SESSION['msg'] = "<p class='alert-success'>🚀 Sucesso! Inscrição ({$tipoInscricao}) confirmada em {$qtdInscricoes} categoria(s).</p>";
         $this->result = true;
     }
 

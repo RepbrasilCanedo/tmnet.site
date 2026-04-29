@@ -37,7 +37,6 @@ class AddCompeticoes
         $listMenu = new \App\adms\Models\helper\AdmsMenu();
         $this->data['menu'] = $listMenu->itemMenu(); 
         
-        // Puxa as categorias do clube para mostrar as checkboxes
         $addComp = new \App\adms\Models\AdmsAddCompeticao();
         $this->data['categorias_clube'] = $addComp->getCategoriasClube();
 
