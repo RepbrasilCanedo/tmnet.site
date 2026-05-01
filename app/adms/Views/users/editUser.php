@@ -18,7 +18,7 @@ if (isset($this->data['form'][0])) {
             <div class="top-list-right">
                 <?php
                 if ($this->data['button']['list_users']) {
-                    echo "<a href='" . URLADM . "list-users/index' class='btn-info'>Listar Todos</a> ";
+                    echo "<a href='" . URLADM . "list-atletas/index' class='btn-info'>Listar Todos</a> ";
                 }
                 if (isset($valorForm['id'])) {
                     if ($this->data['button']['view_users']) {

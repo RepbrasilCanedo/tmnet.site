@@ -103,7 +103,8 @@ $nomeAtletaB = !empty($this->data['form']['nome_b']) ? $this->data['form']['nome
                         </div>
                         <button type="button" class="btn-wo" onclick="confirmarWO('<?= $this->data['form']['atleta_b_id'] ?>', 'Lado B')">Vitória W.O.</button>
                     </div>
-
+                    <!--Verifica se quam esta logado e Arbitro, se for mostra a opção para marcar que lado saca primeiro -->
+                    <?php ?>
                     <div class="saque-box">
                         <span class="saque-title">Sorteio Inicial: Quem começa sacando?</span>
                         <div class="saque-options">
@@ -115,6 +116,7 @@ $nomeAtletaB = !empty($this->data['form']['nome_b']) ? $this->data['form']['nome
                             </label>
                         </div>
                     </div>
+
                 </div>
 
                 <?php for($i = 1; $i <= 5; $i++): ?>

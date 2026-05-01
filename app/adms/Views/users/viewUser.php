@@ -43,7 +43,7 @@ $nivelLogado = $_SESSION['adms_access_level_id'];
 
                 <?php
                 if ($this->data['button']['list_users']) {
-                    echo "<a href='" . URLADM . "list-users/index' class='btn-info'>Listar</a> ";
+                    echo "<a href='" . URLADM . "list-atletas/index' class='btn-info'>Listar</a> ";
                 }
                 if (!empty($this->data['viewUser'])) {
                     $userId = $this->data['viewUser'][0]['id'];

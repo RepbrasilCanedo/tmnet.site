@@ -24,28 +24,41 @@ class AdmsInscricaoAtleta
 
         $campos = "c.id, c.nome_torneio, c.data_evento, c.local_evento, c.categoria_cbtm, c.fator_multiplicador, 
                    c.categorias_selecionadas, c.valor_uma_categoria, c.valor_duas_categorias, 
-                   c.valor_uma_socio, c.valor_duas_socio, c.valor_uma_estudante, c.valor_duas_estudante, c.chave_pix,
+                   c.valor_uma_socio, c.valor_duas_socio, c.valor_uma_estudante, c.valor_duas_estudante, c.chave_pix, c.status_inscricao,
                    emp.nome_fantasia as clube_nome, emp.logo as clube_logo, emp.id as clube_id";
 
+        // Busca os IDs das inscrições
+        $readInscricoes = new \App\adms\Models\helper\AdmsRead();
+        $readInscricoes->fullRead("SELECT adms_competicao_id FROM adms_inscricoes WHERE adms_user_id = :user_id", "user_id={$userId}");
+        $inscricoesBd = $readInscricoes->getResult() ?: [];
+        
+        $idsInscritos = [];
+        foreach ($inscricoesBd as $inscBd) {
+            $idsInscritos[] = $inscBd['adms_competicao_id'];
+        }
+        $stringIdsInscritos = !empty($idsInscritos) ? implode(',', $idsInscritos) : '0';
+
+        // DOCAN FIX BLINDADO: Usando Bind Param (:status) para evitar que o AdmsRead falhe no PDO.
         if ($torneioId) {
             $read->fullRead(
                 "SELECT $campos FROM adms_competicoes c
                  LEFT JOIN adms_emp_principal emp ON emp.id = c.empresa_id
-                 WHERE c.status_inscricao = 1 AND c.id = :torneio_id
+                 WHERE c.id = :torneio_id AND (c.status_inscricao = :status OR c.id IN ({$stringIdsInscritos}))
                  ORDER BY c.data_evento ASC",
-                "torneio_id={$torneioId}"
+                "torneio_id={$torneioId}&status=1"
             );
         } else {
             $read->fullRead(
                 "SELECT $campos FROM adms_competicoes c
                  LEFT JOIN adms_emp_principal emp ON emp.id = c.empresa_id
-                 WHERE c.status_inscricao = 1 ORDER BY c.data_evento ASC"
+                 WHERE (c.status_inscricao = :status OR c.id IN ({$stringIdsInscritos}))
+                 ORDER BY c.data_evento ASC",
+                "status=1"
             );
         }
         
         $torneios = $read->getResult() ?: [];
 
-        // DOCAN FIX: Busca o tipo_inscricao (Geral, Socio, Estudante) salvo no banco
         $read->fullRead(
             "SELECT adms_competicao_id, adms_categoria_id, status_pagamento_id, tipo_inscricao 
              FROM adms_inscricoes WHERE adms_user_id = :user_id", 
@@ -72,7 +85,7 @@ class AdmsInscricaoAtleta
         foreach ($torneios as $key => $t) {
             $torneios[$key]['categorias_inscritas'] = isset($inscricoesPorTorneio[$t['id']]) ? implode(',', $inscricoesPorTorneio[$t['id']]) : '';
             $torneios[$key]['status_pagamento'] = $statusPorTorneio[$t['id']] ?? 1;
-            $torneios[$key]['tipo_inscricao_salvo'] = $tipoPorTorneio[$t['id']] ?? 'Geral'; // Passa o tipo salvo para a View
+            $torneios[$key]['tipo_inscricao_salvo'] = $tipoPorTorneio[$t['id']] ?? 'Geral';
 
             $idadeAtleta = 0;
             if (!empty($atleta['data_nascimento']) && $atleta['data_nascimento'] !== '0000-00-00') {
@@ -91,7 +104,6 @@ class AdmsInscricaoAtleta
             if (!empty($catIdsArray)) {
                 $idsCsv = implode(',', $catIdsArray); 
                 $readCat = new \App\adms\Models\helper\AdmsRead();
-                
                 $readCat->fullRead("SELECT * FROM adms_categorias WHERE id IN ({$idsCsv})");
                 $catsDoTorneio = $readCat->getResult() ?: [];
 
@@ -122,7 +134,7 @@ class AdmsInscricaoAtleta
     {
         $compId = (int)$dados['competicao_id'];
         $userId = (int)$_SESSION['user_id']; 
-        $tipoInscricao = $dados['tipo_inscricao'] ?? 'Geral'; // Captura a modalidade escolhida
+        $tipoInscricao = $dados['tipo_inscricao'] ?? 'Geral';
 
         if (empty($dados['categorias_selecionadas'])) {
             $_SESSION['msg'] = "<p class='alert-warning'>Você deve escolher pelo menos uma categoria/divisão!</p>";
@@ -195,7 +207,7 @@ class AdmsInscricaoAtleta
                 'adms_user_id' => $userId,
                 'adms_categoria_id' => (int)$catId,
                 'status_pagamento_id' => $statusAtual,
-                'tipo_inscricao' => $tipoInscricao, // Grava a modalidade escolhida
+                'tipo_inscricao' => $tipoInscricao,
                 'created' => date("Y-m-d H:i:s")
             ];
             $create->exeCreate("adms_inscricoes", $dadosInscricao);
@@ -211,6 +223,14 @@ class AdmsInscricaoAtleta
         $compId = (int)$dados['competicao_id'];
         $userId = (int)$_SESSION['user_id'];
         
+        $read = new \App\adms\Models\helper\AdmsRead();
+        $read->fullRead("SELECT status_inscricao FROM adms_competicoes WHERE id = :id LIMIT 1", "id={$compId}");
+        if (empty($read->getResult()) || $read->getResult()[0]['status_inscricao'] != 1) {
+            $_SESSION['msg'] = "<p class='alert-danger'>Erro: Não é possível cancelar. As inscrições já foram encerradas!</p>";
+            $this->result = false;
+            return;
+        }
+
         $delete = new \App\adms\Models\helper\AdmsDelete();
         $delete->exeDelete("adms_inscricoes", "WHERE adms_competicao_id = :comp_id AND adms_user_id = :user_id", "comp_id={$compId}&user_id={$userId}");
         

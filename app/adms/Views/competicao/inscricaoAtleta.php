@@ -3,6 +3,22 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     header("Location: /");
     die("Erro: Página não encontrada<br>");
 }
+
+// DOCAN FIX: Separa os torneios em duas listas (Meus Torneios vs Torneios Abertos)
+$meusTorneios = [];
+$torneiosAbertos = [];
+
+if (!empty($this->data['torneios'])) {
+    foreach ($this->data['torneios'] as $torneio) {
+        if (!empty($torneio['categorias_inscritas'])) {
+            $meusTorneios[] = $torneio;
+        } else {
+            if ($torneio['status_inscricao'] == 1) {
+                $torneiosAbertos[] = $torneio;
+            }
+        }
+    }
+}
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -18,7 +34,9 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     .btn-inscrever { display: block; width: 100%; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.3s; font-size: 14px; margin-bottom: 5px; }
     .btn-inscrever:hover { background: #218838; }
     .btn-atualizar { display: block; width: 100%; background: #17a2b8; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.3s; font-size: 14px; margin-bottom: 5px; }
+    .btn-atualizar:hover { background: #138496; }
     .btn-cancelar { display: block; width: 100%; background: #dc3545; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.3s; font-size: 14px; }
+    .btn-cancelar:hover { background: #c82333; }
     .box-divisao { border: 1px solid #cce5ff; background: #eef2fa; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
     .box-divisao label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: #0044cc; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #ddd; transition: 0.2s; }
     .box-divisao label:hover { background: #f1f1f1; }
@@ -32,20 +50,24 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
     .badge-warn { background-color: #ffc107; color: #333; padding: 2px 8px; border-radius: 12px; }
     .badge-info { background-color: #17a2b8; color: white; padding: 2px 8px; border-radius: 12px; }
     
-    /* Estilo dos Radio Buttons de Tipo de Inscrição */
     .tipo-insc-box { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; justify-content: center; }
     .tipo-insc-box label { background: #fff; border: 1px solid #ccc; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; color: #555; }
     .tipo-insc-box input[type="radio"] { display: none; }
     .tipo-insc-box input[type="radio"]:checked + span { color: #0044cc; }
     .tipo-insc-box label:has(input[type="radio"]:checked) { border-color: #0044cc; background: #eef2fa; }
+
+    /* Estilo dos Títulos de Seção */
+    .section-title { font-size: 18px; font-weight: bold; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-top: 30px; margin-bottom: 15px; }
+    .section-title i { margin-right: 8px; }
 </style>
 
 <div class="dash-wrapper">
     <div class="row">
+        
         <div class="top-list" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div>
-                <span class="title-content" style="margin: 0; display: block;">🏆 Inscrições Abertas</span>
-                <p style="color: #666; margin: 0; font-size: 14px;">Selecione o torneio e as categorias que deseja disputar.</p>
+                <span class="title-content" style="margin: 0; display: block;">🏆 Central de Inscrições</span>
+                <p style="color: #666; margin: 0; font-size: 14px;">Gerencie suas participações na plataforma.</p>
             </div>
             
             <div class="top-list-right" style="margin: 0;">
@@ -62,14 +84,23 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
             ?>
         </div>
 
-        <?php if (!empty($this->data['torneios'])): ?>
+        <!-- ========================================== -->
+        <!-- SESSÃO 1: MINHAS INSCRIÇÕES (Já Inscrito)  -->
+        <!-- ========================================== -->
+        <h3 class="section-title" style="color: #28a745; border-bottom-color: #28a745;">
+            <i class="fa-solid fa-ticket"></i> Minhas Inscrições Confirmadas
+        </h3>
+        
+        <?php if (!empty($meusTorneios)): ?>
             <div class="grid-torneios">
-                <?php foreach ($this->data['torneios'] as $torneio): 
-                    $jaInscrito = !empty($torneio['categorias_inscritas']);
-                    $arrayInscritas = $jaInscrito ? explode(',', $torneio['categorias_inscritas']) : [];
+                <?php foreach ($meusTorneios as $torneio): 
+                    $jaInscrito = true;
+                    $arrayInscritas = explode(',', $torneio['categorias_inscritas']);
                     $statusPag = $torneio['status_pagamento'] ?? 1;
                     $tipoSalvo = $torneio['tipo_inscricao_salvo'] ?? 'Geral';
-                    
+                    $isFechado = ($torneio['status_inscricao'] == 0);
+                    $blockInputs = $isFechado ? 'disabled' : '';
+
                     $logoClube = (!empty($torneio['clube_logo']) && file_exists("app/adms/assets/image/logo/clientes/" . $torneio['clube_id'] . "/" . $torneio['clube_logo']))
                         ? URLADM . "app/adms/assets/image/logo/clientes/" . $torneio['clube_id'] . "/" . $torneio['clube_logo']
                         : URLADM . "app/adms/assets/image/logo/clientes/logo_padrao.png";
@@ -85,124 +116,70 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                     if(count($arrayInscritas) == 1) $valorInicial = $valUmaGeral;
                     if(count($arrayInscritas) == 2) $valorInicial = $valDuasGeral;
                 ?>
-                    <div class="card-torneio" style="<?= $jaInscrito ? 'border-top-color: #28a745;' : '' ?>">
+                    <div class="card-torneio" style="border-top-color: #28a745;">
                         <div class="vitrine-header" style="display: flex; align-items: center; gap: 15px;">
-                            
-                            <?php if ($jaInscrito): ?>
-                                <div class="status-badge">
-                                    <span class="badge-ok"><i class="fa-solid fa-check"></i> INSCRITO</span>
-                                    <?php if($statusPag == 1): ?>
-                                        <span class="badge-warn"><i class="fa-solid fa-hourglass-half"></i> Aguardando Pgto</span>
-                                    <?php elseif($statusPag == 2): ?>
-                                        <span class="badge-ok"><i class="fa-solid fa-check-double"></i> Pago</span>
-                                    <?php elseif($statusPag == 3): ?>
-                                        <span class="badge-info"><i class="fa-solid fa-star"></i> Isento</span>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
-
+                            <div class="status-badge">
+                                <span class="badge-ok"><i class="fa-solid fa-check"></i> INSCRITO</span>
+                                <?php if($statusPag == 1): ?>
+                                    <span class="badge-warn"><i class="fa-solid fa-hourglass-half"></i> Aguardando Pgto</span>
+                                <?php elseif($statusPag == 2): ?>
+                                    <span class="badge-ok"><i class="fa-solid fa-check-double"></i> Pago</span>
+                                <?php elseif($statusPag == 3): ?>
+                                    <span class="badge-info"><i class="fa-solid fa-star"></i> Isento</span>
+                                <?php endif; ?>
+                                <?php if ($isFechado): ?>
+                                    <span class="badge-warn" style="background: #dc3545; color: white; margin-top: 4px;"><i class="fa-solid fa-lock"></i> ENCERRADO</span>
+                                <?php endif; ?>
+                            </div>
                             <div style="width: 55px; height: 55px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; overflow: hidden; flex-shrink: 0;">
                                 <img src="<?= $logoClube ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                             </div>
-
                             <div>
                                 <h3 style="margin: 0; color: #333; font-size: 18px; line-height: 1.2; width: 75%;"><?= $torneio['nome_torneio'] ?></h3>
                                 <small style="color: #0044cc; font-weight: bold;"><?= $torneio['clube_nome'] ?></small>
                             </div>
                         </div>
-                        
                         <div class="vitrine-body">
                             <p><i class="fa-regular fa-calendar"></i> <strong>Data:</strong> <?= date('d/m/Y', strtotime($torneio['data_evento'])) ?></p>
                             <p><i class="fa-solid fa-location-dot"></i> <strong>Local:</strong> <?= $torneio['local_evento'] ?></p>
                             <p><i class="fa-solid fa-table-tennis-paddle-ball"></i> <strong>Categoria Base:</strong> <?= $torneio['categoria_cbtm'] ?></p>
                         </div>
-                        
                         <div class="card-footer">
-                            <form method="POST" action="" 
-                                  data-uma-geral="<?= $valUmaGeral ?>" data-duas-geral="<?= $valDuasGeral ?>"
-                                  data-uma-socio="<?= $valUmaSocio ?>" data-duas-socio="<?= $valDuasSocio ?>"
-                                  data-uma-est="<?= $valUmaEst ?>" data-duas-est="<?= $valDuasEst ?>">
-                                
+                            <form method="POST" action="" data-uma-geral="<?= $valUmaGeral ?>" data-duas-geral="<?= $valDuasGeral ?>" data-uma-socio="<?= $valUmaSocio ?>" data-duas-socio="<?= $valDuasSocio ?>" data-uma-est="<?= $valUmaEst ?>" data-duas-est="<?= $valDuasEst ?>">
                                 <input type="hidden" name="competicao_id" value="<?= $torneio['id'] ?>">
                                 
                                 <?php if (!empty($torneio['categorias_elegiveis'])): ?>
                                     <div class="tipo-insc-box">
-                                        <label>
-                                            <input type="radio" name="tipo_inscricao" value="Geral" <?= ($tipoSalvo == 'Geral') ? 'checked' : '' ?> onchange="atualizarValor(this)">
-                                            <span><i class="fa-solid fa-user"></i> Geral</span>
-                                        </label>
-                                        
-                                        <?php if($valUmaSocio > 0 || $valDuasSocio > 0): ?>
-                                            <label>
-                                                <input type="radio" name="tipo_inscricao" value="Socio" <?= ($tipoSalvo == 'Socio') ? 'checked' : '' ?> onchange="atualizarValor(this)">
-                                                <span><i class="fa-solid fa-id-card"></i> Sócio / Convênio</span>
-                                            </label>
-                                        <?php endif; ?>
-                                        
-                                        <?php if($valUmaEst > 0 || $valDuasEst > 0): ?>
-                                            <label>
-                                                <input type="radio" name="tipo_inscricao" value="Estudante" <?= ($tipoSalvo == 'Estudante') ? 'checked' : '' ?> onchange="atualizarValor(this)">
-                                                <span><i class="fa-solid fa-graduation-cap"></i> Estudante</span>
-                                            </label>
-                                        <?php endif; ?>
+                                        <label><input type="radio" name="tipo_inscricao" value="Geral" <?= ($tipoSalvo == 'Geral') ? 'checked' : '' ?> <?= $blockInputs ?> onchange="atualizarValor(this)"><span><i class="fa-solid fa-user"></i> Geral</span></label>
+                                        <?php if($valUmaSocio > 0 || $valDuasSocio > 0): ?><label><input type="radio" name="tipo_inscricao" value="Socio" <?= ($tipoSalvo == 'Socio') ? 'checked' : '' ?> <?= $blockInputs ?> onchange="atualizarValor(this)"><span><i class="fa-solid fa-id-card"></i> Sócio / Convênio</span></label><?php endif; ?>
+                                        <?php if($valUmaEst > 0 || $valDuasEst > 0): ?><label><input type="radio" name="tipo_inscricao" value="Estudante" <?= ($tipoSalvo == 'Estudante') ? 'checked' : '' ?> <?= $blockInputs ?> onchange="atualizarValor(this)"><span><i class="fa-solid fa-graduation-cap"></i> Estudante</span></label><?php endif; ?>
                                     </div>
-                                <?php endif; ?>
-
-                                <div class="box-divisao">
-                                    <strong style="display: block; margin-bottom: 10px; font-size: 13px; color: #333;">
-                                        <i class="fa-solid fa-list-check"></i> Escolha suas Categorias:
-                                    </strong>
-                                    
-                                    <?php if (!$torneio['tem_categorias_configuradas']): ?>
-                                        <span style="color: #856404; font-size: 13px; font-weight: bold; display: block; text-align: center; padding: 10px; background: #fff3cd; border-radius: 4px; border: 1px solid #ffeeba;">
-                                            ⚠️ O organizador ainda não vinculou nenhuma categoria a este torneio.
-                                        </span>
-                                    
-                                    <?php elseif (!empty($torneio['categorias_elegiveis'])): ?>
-                                        <?php foreach ($torneio['categorias_elegiveis'] as $cat): 
-                                            $checked = in_array($cat['id'], $arrayInscritas) ? 'checked' : '';
-                                        ?>
-                                            <label>
-                                                <input type="checkbox" name="categorias_selecionadas[]" value="<?= $cat['id'] ?>" <?= $checked ?> style="width: 18px; height: 18px; cursor: pointer;" onclick="atualizarValor(this)"> 
-                                                <?= $cat['nome'] ?>
+                                    <div class="box-divisao">
+                                        <strong style="display: block; margin-bottom: 10px; font-size: 13px; color: #333;"><i class="fa-solid fa-list-check"></i> Suas Categorias:</strong>
+                                        <?php foreach ($torneio['categorias_elegiveis'] as $cat): $checked = in_array($cat['id'], $arrayInscritas) ? 'checked' : ''; ?>
+                                            <label <?= $isFechado ? 'style="opacity:0.7; cursor:not-allowed;"' : '' ?>>
+                                                <input type="checkbox" name="categorias_selecionadas[]" value="<?= $cat['id'] ?>" <?= $checked ?> <?= $blockInputs ?> style="width: 18px; height: 18px; cursor: <?= $isFechado ? 'not-allowed' : 'pointer' ?>;" onclick="atualizarValor(this)"> <?= $cat['nome'] ?>
                                             </label>
                                         <?php endforeach; ?>
-                                        <small style="color: #888; font-size: 11px; display: block; margin-top: 8px; text-align: center;">
-                                            * Limite de 2 categorias por atleta.
-                                        </small>
-                                    
-                                    <?php else: ?>
-                                        <span style="color: #dc3545; font-size: 13px; font-weight: bold; display: block; text-align: center; padding: 10px; background: #fff; border-radius: 4px;">
-                                            🚫 Sem categorias compatíveis com sua Idade/Rating.
-                                        </span>
-                                    <?php endif; ?>
-                                </div>
-
-                                <?php if (!empty($torneio['categorias_elegiveis'])): ?>
-                                    <div class="box-pix">
+                                    </div>
+                                    <div class="box-pix" <?= $isFechado ? 'style="opacity: 0.8;"' : '' ?>>
                                         <p><strong>1 Cat:</strong> R$ <span class="lbl-val-uma"><?= number_format($valUmaGeral, 2, ',', '.') ?></span> | <strong>2 Cat:</strong> R$ <span class="lbl-val-duas"><?= number_format($valDuasGeral, 2, ',', '.') ?></span></p>
                                         <p>Chave PIX do Organizador:</p>
-                                        <div class="chave"><?= !empty($torneio['chave_pix']) ? $torneio['chave_pix'] : 'Não informada' ?></div>
-                                        
-                                        <div class="total-pagar">
-                                            Total a Pagar: R$ <span class="valor-dinamico"><?= number_format($valorInicial, 2, ',', '.') ?></span>
+                                        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 5px;">
+                                            <div class="chave" style="margin-top: 0;"><?= !empty($torneio['chave_pix']) ? $torneio['chave_pix'] : 'Não informada' ?></div>
+                                            <?php if (!empty($torneio['chave_pix'])): ?><button type="button" id="btn-pix-<?= $torneio['id'] ?>" onclick="copiarPix('<?= $torneio['chave_pix'] ?>', 'btn-pix-<?= $torneio['id'] ?>')" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.3s;"><i class="fa-regular fa-copy"></i> Copiar</button><?php endif; ?>
                                         </div>
+                                        <div class="total-pagar">Total a Pagar: R$ <span class="valor-dinamico"><?= number_format($valorInicial, 2, ',', '.') ?></span></div>
                                     </div>
                                 <?php endif; ?>
 
-                                <?php if (!empty($torneio['categorias_elegiveis'])): ?>
-                                    <?php if ($jaInscrito): ?>
-                                        <button type="submit" name="AdmsAtualizar" value="Atualizar" class="btn-atualizar">
-                                            <i class="fa-solid fa-rotate"></i> Atualizar Inscrição
-                                        </button>
-                                        <button type="submit" name="AdmsCancelar" value="Cancelar" class="btn-cancelar" onclick="return confirm('Tem certeza que deseja cancelar sua participação neste torneio?');">
-                                            <i class="fa-solid fa-xmark"></i> Cancelar Inscrição
-                                        </button>
-                                    <?php else: ?>
-                                        <button type="submit" name="AdmsInscrever" value="Inscrever" class="btn-inscrever">
-                                            <i class="fa-solid fa-check-double"></i> Confirmar Inscrição!
-                                        </button>
-                                    <?php endif; ?>
+                                <?php if ($isFechado): ?>
+                                    <div style="text-align: center; padding: 10px; background: #fff3cd; color: #856404; border-radius: 4px; font-weight: bold; border: 1px solid #ffeeba;">
+                                        <i class="fa-solid fa-lock"></i> Inscrições Encerradas
+                                    </div>
+                                <?php else: ?>
+                                    <button type="submit" name="AdmsAtualizar" value="Atualizar" class="btn-atualizar"><i class="fa-solid fa-rotate"></i> Atualizar Inscrição</button>
+                                    <button type="submit" name="AdmsCancelar" value="Cancelar" class="btn-cancelar" onclick="return confirm('Tem certeza que deseja cancelar sua participação neste torneio?');"><i class="fa-solid fa-xmark"></i> Cancelar Inscrição</button>
                                 <?php endif; ?>
                             </form>
                         </div>
@@ -210,12 +187,92 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <div style="background: #fff; padding: 40px; border-radius: 8px; text-align: center; color: #888; border: 2px dashed #ddd; margin-top: 20px;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 40px; color: #ccc; margin-bottom: 15px;"></i><br>
-                <h3 style="color: #555; margin-bottom: 5px;">A Mesa está Vazia</h3>
-                Nenhum clube lançou torneios com inscrições abertas no momento.<br>Continue treinando e volte em breve!
+            <div style="background: #fff; padding: 20px; border-radius: 8px; text-align: center; color: #888; border: 1px dashed #ddd; margin-bottom: 20px;">
+                Você ainda não realizou inscrições.
             </div>
         <?php endif; ?>
+
+        <!-- ========================================== -->
+        <!-- SESSÃO 2: TORNEIOS ABERTOS (Para se Inscrever)-->
+        <!-- ========================================== -->
+        <h3 class="section-title" style="color: #0044cc; border-bottom-color: #0044cc; margin-top: 40px;">
+            <i class="fa-solid fa-trophy"></i> Novos Torneios (Inscrições Abertas)
+        </h3>
+
+        <?php if (!empty($torneiosAbertos)): ?>
+            <div class="grid-torneios">
+                <?php foreach ($torneiosAbertos as $torneio): 
+                    $logoClube = (!empty($torneio['clube_logo']) && file_exists("app/adms/assets/image/logo/clientes/" . $torneio['clube_id'] . "/" . $torneio['clube_logo']))
+                        ? URLADM . "app/adms/assets/image/logo/clientes/" . $torneio['clube_id'] . "/" . $torneio['clube_logo']
+                        : URLADM . "app/adms/assets/image/logo/clientes/logo_padrao.png";
+
+                    $valUmaGeral = (float)($torneio['valor_uma_categoria'] ?? 0);
+                    $valDuasGeral = (float)($torneio['valor_duas_categorias'] ?? 0);
+                    $valUmaSocio = (float)($torneio['valor_uma_socio'] ?? 0);
+                    $valDuasSocio = (float)($torneio['valor_duas_socio'] ?? 0);
+                    $valUmaEst = (float)($torneio['valor_uma_estudante'] ?? 0);
+                    $valDuasEst = (float)($torneio['valor_duas_estudante'] ?? 0);
+                ?>
+                    <div class="card-torneio">
+                        <div class="vitrine-header" style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 55px; height: 55px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; overflow: hidden; flex-shrink: 0;">
+                                <img src="<?= $logoClube ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; color: #333; font-size: 18px; line-height: 1.2; width: 85%;"><?= $torneio['nome_torneio'] ?></h3>
+                                <small style="color: #0044cc; font-weight: bold;"><?= $torneio['clube_nome'] ?></small>
+                            </div>
+                        </div>
+                        <div class="vitrine-body">
+                            <p><i class="fa-regular fa-calendar"></i> <strong>Data:</strong> <?= date('d/m/Y', strtotime($torneio['data_evento'])) ?></p>
+                            <p><i class="fa-solid fa-location-dot"></i> <strong>Local:</strong> <?= $torneio['local_evento'] ?></p>
+                            <p><i class="fa-solid fa-table-tennis-paddle-ball"></i> <strong>Categoria Base:</strong> <?= $torneio['categoria_cbtm'] ?></p>
+                        </div>
+                        <div class="card-footer">
+                            <form method="POST" action="" data-uma-geral="<?= $valUmaGeral ?>" data-duas-geral="<?= $valDuasGeral ?>" data-uma-socio="<?= $valUmaSocio ?>" data-duas-socio="<?= $valDuasSocio ?>" data-uma-est="<?= $valUmaEst ?>" data-duas-est="<?= $valDuasEst ?>">
+                                <input type="hidden" name="competicao_id" value="<?= $torneio['id'] ?>">
+                                
+                                <?php if (!empty($torneio['categorias_elegiveis'])): ?>
+                                    <div class="tipo-insc-box">
+                                        <label><input type="radio" name="tipo_inscricao" value="Geral" checked onchange="atualizarValor(this)"><span><i class="fa-solid fa-user"></i> Geral</span></label>
+                                        <?php if($valUmaSocio > 0 || $valDuasSocio > 0): ?><label><input type="radio" name="tipo_inscricao" value="Socio" onchange="atualizarValor(this)"><span><i class="fa-solid fa-id-card"></i> Sócio / Convênio</span></label><?php endif; ?>
+                                        <?php if($valUmaEst > 0 || $valDuasEst > 0): ?><label><input type="radio" name="tipo_inscricao" value="Estudante" onchange="atualizarValor(this)"><span><i class="fa-solid fa-graduation-cap"></i> Estudante</span></label><?php endif; ?>
+                                    </div>
+                                    <div class="box-divisao">
+                                        <strong style="display: block; margin-bottom: 10px; font-size: 13px; color: #333;"><i class="fa-solid fa-list-check"></i> Escolha suas Categorias:</strong>
+                                        <?php foreach ($torneio['categorias_elegiveis'] as $cat): ?>
+                                            <label>
+                                                <input type="checkbox" name="categorias_selecionadas[]" value="<?= $cat['id'] ?>" style="width: 18px; height: 18px; cursor: pointer;" onclick="atualizarValor(this)"> <?= $cat['nome'] ?>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <div class="box-pix">
+                                        <p><strong>1 Cat:</strong> R$ <span class="lbl-val-uma"><?= number_format($valUmaGeral, 2, ',', '.') ?></span> | <strong>2 Cat:</strong> R$ <span class="lbl-val-duas"><?= number_format($valDuasGeral, 2, ',', '.') ?></span></p>
+                                        <p>Chave PIX do Organizador:</p>
+                                        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 5px;">
+                                            <div class="chave" style="margin-top: 0;"><?= !empty($torneio['chave_pix']) ? $torneio['chave_pix'] : 'Não informada' ?></div>
+                                            <?php if (!empty($torneio['chave_pix'])): ?><button type="button" id="btn-pix-<?= $torneio['id'] ?>" onclick="copiarPix('<?= $torneio['chave_pix'] ?>', 'btn-pix-<?= $torneio['id'] ?>')" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.3s;"><i class="fa-regular fa-copy"></i> Copiar</button><?php endif; ?>
+                                        </div>
+                                        <div class="total-pagar">Total a Pagar: R$ <span class="valor-dinamico">0,00</span></div>
+                                    </div>
+                                    <button type="submit" name="AdmsInscrever" value="Inscrever" class="btn-inscrever"><i class="fa-solid fa-check-double"></i> Confirmar Inscrição!</button>
+                                <?php else: ?>
+                                    <span style="color: #dc3545; font-size: 13px; font-weight: bold; display: block; text-align: center; padding: 10px; background: #fff; border-radius: 4px;">
+                                        🚫 Sem categorias compatíveis com sua Idade/Rating.
+                                    </span>
+                                <?php endif; ?>
+                            </form>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div style="background: #fff; padding: 40px; border-radius: 8px; text-align: center; color: #888; border: 2px dashed #ddd; margin-bottom: 20px;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 40px; color: #ccc; margin-bottom: 15px;"></i><br>
+                Nenhum novo torneio com inscrições abertas no momento.
+            </div>
+        <?php endif; ?>
+
     </div>
 </div>
 
@@ -258,7 +315,24 @@ if (!defined('D0O8C0A3N1E9D6O1')) {
         }
     }
 
-    // DOCAN FIX: Garante que os preços são recalculados ao carregar a página com o valor que veio do banco!
+    function copiarPix(textoPix, btnId) {
+        navigator.clipboard.writeText(textoPix).then(function() {
+            var btn = document.getElementById(btnId);
+            var htmlOriginal = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+            btn.style.backgroundColor = '#155724'; 
+            
+            setTimeout(function() {
+                btn.innerHTML = htmlOriginal;
+                btn.style.backgroundColor = '#28a745'; 
+            }, 2500);
+        }).catch(function(err) {
+            console.error('Erro ao copiar PIX: ', err);
+            alert("O seu navegador bloqueou a cópia automática. Por favor, selecione e copie a chave manualmente.");
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll('form').forEach(form => {
             const radioAtivo = form.querySelector('input[type="radio"]:checked');
